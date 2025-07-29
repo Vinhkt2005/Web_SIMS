@@ -1,0 +1,189 @@
+﻿@model Web_SIMS.Models.Student
+
+@{
+    ViewData["Title"] = "Sửa thông tin sinh viên";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-edit me-2"></i>Sửa thông tin sinh viên
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <input type="hidden" asp-for="StudentId" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Thông tin cơ bản
+                                </h5>
+
+                                <div class="mb-3">
+                                    <label asp-for="StudentCode" class="form-label fw-semibold">
+                                        <i class="fas fa-id-card me-2"></i>Mã sinh viên
+                                    </label>
+                                    <input asp-for="StudentCode" class="form-control" placeholder="VD: SV001" />
+                                    <span asp-validation-for="StudentCode" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2"></i>Họ và tên
+                                    </label>
+                                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" />
+                                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label fw-semibold">
+                                        <i class="fas fa-envelope me-2"></i>Email
+                                    </label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="example@email.com" />
+                                    <span asp-validation-for="Email" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label fw-semibold">
+                                        <i class="fas fa-phone me-2"></i>Số điện thoại
+                                    </label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="0123456789" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="DateOfBirth" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar me-2"></i>Ngày sinh
+                                    </label>
+                                    <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                    <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-graduation-cap me-2"></i>Thông tin học tập
+                                </h5>
+
+                                <div class="mb-3">
+                                    <label asp-for="Gender" class="form-label fw-semibold">
+                                        <i class="fas fa-venus-mars me-2"></i>Giới tính
+                                    </label>
+                                    <select asp-for="Gender" class="form-select">
+                                        <option value="">Chọn giới tính</option>
+                                        <option value="Nam" selected="@(Model.Gender == "Nam")">Nam</option>
+                                        <option value="Nữ" selected="@(Model.Gender == "Nữ")">Nữ</option>
+                                        <option value="Khác" selected="@(Model.Gender == "Khác")">Khác</option>
+                                    </select>
+                                    <span asp-validation-for="Gender" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Major" class="form-label fw-semibold">
+                                        <i class="fas fa-book me-2"></i>Chuyên ngành
+                                    </label>
+                                    <select asp-for="Major" class="form-select">
+                                        <option value="">Chọn chuyên ngành</option>
+                                        <option value="Công nghệ thông tin" selected="@(Model.Major == "Công nghệ thông tin")">Công nghệ thông tin</option>
+                                        <option value="Kinh tế" selected="@(Model.Major == "Kinh tế")">Kinh tế</option>
+                                        <option value="Kế toán" selected="@(Model.Major == "Kế toán")">Kế toán</option>
+                                        <option value="Tài chính - Ngân hàng" selected="@(Model.Major == "Tài chính - Ngân hàng")">Tài chính - Ngân hàng</option>
+                                        <option value="Quản trị kinh doanh" selected="@(Model.Major == "Quản trị kinh doanh")">Quản trị kinh doanh</option>
+                                        <option value="Luật" selected="@(Model.Major == "Luật")">Luật</option>
+                                        <option value="Y khoa" selected="@(Model.Major == "Y khoa")">Y khoa</option>
+                                        <option value="Sư phạm" selected="@(Model.Major == "Sư phạm")">Sư phạm</option>
+                                        <option value="Khác" selected="@(Model.Major == "Khác")">Khác</option>
+                                    </select>
+                                    <span asp-validation-for="Major" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="AcademicYear" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-alt me-2"></i>Khóa học
+                                    </label>
+                                    <select asp-for="AcademicYear" class="form-select">
+                                        <option value="">Chọn khóa học</option>
+                                        <option value="2024-2025" selected="@(Model.AcademicYear == "2024-2025")">2024-2025</option>
+                                        <option value="2023-2024" selected="@(Model.AcademicYear == "2023-2024")">2023-2024</option>
+                                        <option value="2022-2023" selected="@(Model.AcademicYear == "2022-2023")">2022-2023</option>
+                                        <option value="2021-2022" selected="@(Model.AcademicYear == "2021-2022")">2021-2022</option>
+                                    </select>
+                                    <span asp-validation-for="AcademicYear" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label fw-semibold">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
+                                    </label>
+                                    <textarea asp-for="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ đầy đủ"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="IsActive" class="form-label fw-semibold">
+                                        <i class="fas fa-toggle-on me-2"></i>Trạng thái
+                                    </label>
+                                    <div class="form-check">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            Sinh viên đang hoạt động
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label fw-semibold">
+                                        <i class="fas fa-sticky-note me-2"></i>Ghi chú
+                                    </label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú thêm (nếu có)"></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Cập nhật
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Auto-format phone number
+        document.getElementById('PhoneNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            e.target.value = value;
+        });
+
+        // Auto-format student code
+        document.getElementById('StudentCode').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase();
+            e.target.value = value;
+        });
+    </script>
+}
