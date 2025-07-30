@@ -1,0 +1,18 @@
+@model Web_SIMS.Models.Course
+@{
+    ViewData["Title"] = "Chi tiết môn học";
+}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-info-circle me-2"></i>@Model.CourseName</h2>
+    <dl class="row">
+        <dt class="col-sm-3">Mã môn</dt>
+        <dd class="col-sm-9">@Model.CourseCode</dd>
+        <dt class="col-sm-3">Tín chỉ</dt>
+        <dd class="col-sm-9">@Model.Credits</dd>
+        <dt class="col-sm-3">Giảng viên</dt>
+        <dd class="col-sm-9">@Model.Instructor</dd>
+        <dt class="col-sm-3">Mô tả</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+    <a class="btn btn-secondary" asp-action="Courses"><i class="fas fa-arrow-left me-2"></i>Quay lại</a>
+</div>

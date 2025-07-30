@@ -1,0 +1,22 @@
+@model Web_SIMS.Models.Student
+@{
+    ViewData["Title"] = "Hồ sơ sinh viên";
+}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-id-card me-2"></i>Hồ sơ sinh viên</h2>
+    <dl class="row">
+        <dt class="col-sm-3">Mã sinh viên</dt>
+        <dd class="col-sm-9">@Model.StudentCode</dd>
+        <dt class="col-sm-3">Họ và tên</dt>
+        <dd class="col-sm-9">@Model.FullName</dd>
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.Email</dd>
+        <dt class="col-sm-3">Số điện thoại</dt>
+        <dd class="col-sm-9">@Model.PhoneNumber</dd>
+        <dt class="col-sm-3">Chuyên ngành</dt>
+        <dd class="col-sm-9">@Model.Major</dd>
+        <dt class="col-sm-3">Khóa học</dt>
+        <dd class="col-sm-9">@Model.AcademicYear</dd>
+    </dl>
+    <a class="btn btn-secondary" asp-action="Home"><i class="fas fa-arrow-left me-2"></i>Quay lại</a>
+</div>

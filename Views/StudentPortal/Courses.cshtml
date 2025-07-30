@@ -1,0 +1,26 @@
+@model IEnumerable<Web_SIMS.Models.Course?>
+@{
+    ViewData["Title"] = "Môn học của tôi";
+}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-book me-2"></i>Môn học của tôi</h2>
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Mã môn</th>
+                <th>Tên môn</th>
+                <th>Tín chỉ</th>
+            </tr>
+        </thead>
+        <tbody>
+@foreach (var course in Model)
+{
+            <tr>
+                <td>@course?.CourseCode</td>
+                <td><a asp-action="CourseDetails" asp-route-id="@course?.CourseId">@course?.CourseName</a></td>
+                <td>@course?.Credits</td>
+            </tr>
+}
+        </tbody>
+    </table>
+</div>
