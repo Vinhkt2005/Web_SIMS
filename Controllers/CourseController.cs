@@ -8,8 +8,9 @@ using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-    [Authorize(Roles = "Admin,Faculty")]
-    public class CourseController : Controller
+[Authorize(Roles = "Admin,Faculty")]
+[Route("admin/courses")]
+public class CourseController : Controller
     {
         private readonly AppDbContext _context;
         private readonly ILogger<CourseController> _logger;
@@ -20,7 +21,8 @@ namespace Web_SIMS.Controllers
             _logger = logger;
         }
 
-        // GET: Course
+        // GET: /admin/courses
+        [HttpGet("")]
         public async Task<IActionResult> Index(string searchString, string sortOrder, int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
@@ -58,7 +60,8 @@ namespace Web_SIMS.Controllers
             return View(await PaginatedList<Course>.CreateAsync(courses.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
-        // GET: Course/Details/5
+        // GET: /admin/courses/{id}
+        [HttpGet("{id}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -81,14 +84,15 @@ namespace Web_SIMS.Controllers
             return View(course);
         }
 
-        // GET: Course/Create
+        // GET: /admin/courses/create
+        [HttpGet("create")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Course/Create
-        [HttpPost]
+        // POST: /admin/courses
+        [HttpPost("")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CourseCode,CourseName,Description,Credits,MaxStudents,Semester,AcademicYear,Instructor")] Course course)
         {
@@ -115,7 +119,8 @@ namespace Web_SIMS.Controllers
             return View(course);
         }
 
-        // GET: Course/Edit/5
+        // GET: /admin/courses/edit/{id}
+        [HttpGet("edit/{id}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -131,8 +136,9 @@ namespace Web_SIMS.Controllers
             return View(course);
         }
 
-        // POST: Course/Edit/5
-        [HttpPost]
+        // POST: /admin/courses/{id}
+        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CourseId,CourseCode,CourseName,Description,Credits,MaxStudents,Semester,AcademicYear,Instructor,IsActive")] Course course)
         {
@@ -175,7 +181,8 @@ namespace Web_SIMS.Controllers
             return View(course);
         }
 
-        // GET: Course/Delete/5
+        // GET: /admin/courses/delete/{id}
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -193,8 +200,9 @@ namespace Web_SIMS.Controllers
             return View(course);
         }
 
-        // POST: Course/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // DELETE: /admin/courses/{id}
+        [HttpPost("delete/{id}")]
+        [HttpDelete("{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

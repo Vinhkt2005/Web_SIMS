@@ -9,8 +9,9 @@ using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-    [Authorize(Roles = "Admin")]
-    public class UserController : Controller
+[Authorize(Roles = "Admin")]
+[Route("admin/users")]
+public class UserController : Controller
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UserController> _logger;
@@ -21,7 +22,8 @@ namespace Web_SIMS.Controllers
             _logger = logger;
         }
 
-        // GET: User
+        // GET: /admin/users
+        [HttpGet("")]
         public async Task<IActionResult> Index(string searchString, string sortOrder, int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
@@ -59,7 +61,8 @@ namespace Web_SIMS.Controllers
             return View(await PaginatedList<User>.CreateAsync(users.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
-        // GET: User/Details/5
+        // GET: /admin/users/{id}
+        [HttpGet("{id}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -79,15 +82,16 @@ namespace Web_SIMS.Controllers
             return View(user);
         }
 
-        // GET: User/Create
+        // GET: /admin/users/create
+        [HttpGet("create")]
         public IActionResult Create()
         {
             ViewData["RoleId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Roles.Where(r => r.IsActive), "RoleId", "RoleName");
             return View();
         }
 
-        // POST: User/Create
-        [HttpPost]
+        // POST: /admin/users
+        [HttpPost("")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Username,Password,Email,FullName,RoleId")] User user)
         {
@@ -128,7 +132,8 @@ namespace Web_SIMS.Controllers
             return View(user);
         }
 
-        // GET: User/Edit/5
+        // GET: /admin/users/edit/{id}
+        [HttpGet("edit/{id}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -145,8 +150,9 @@ namespace Web_SIMS.Controllers
             return View(user);
         }
 
-        // POST: User/Edit/5
-        [HttpPost]
+        // POST: /admin/users/{id}
+        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("UserId,Username,Email,FullName,RoleId,IsActive")] User user)
         {
@@ -199,7 +205,8 @@ namespace Web_SIMS.Controllers
             return View(user);
         }
 
-        // GET: User/Delete/5
+        // GET: /admin/users/delete/{id}
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -218,8 +225,9 @@ namespace Web_SIMS.Controllers
             return View(user);
         }
 
-        // POST: User/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // DELETE: /admin/users/{id}
+        [HttpPost("delete/{id}")]
+        [HttpDelete("{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

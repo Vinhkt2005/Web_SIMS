@@ -8,8 +8,9 @@ using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-    [Authorize(Roles = "Admin,Faculty")]
-    public class StudentController : Controller
+[Authorize(Roles = "Admin,Faculty")]
+[Route("admin/students")]
+public class StudentController : Controller
     {
         private readonly AppDbContext _context;
         private readonly ILogger<StudentController> _logger;
@@ -20,7 +21,8 @@ namespace Web_SIMS.Controllers
             _logger = logger;
         }
 
-        // GET: Student
+        // GET: /admin/students
+        [HttpGet("")]
         public async Task<IActionResult> Index(string searchString, string sortOrder, int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
@@ -58,7 +60,8 @@ namespace Web_SIMS.Controllers
             return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
-        // GET: Student/Details/5
+        // GET: /admin/students/{id}
+        [HttpGet("{id}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -81,14 +84,15 @@ namespace Web_SIMS.Controllers
             return View(student);
         }
 
-        // GET: Student/Create
+        // GET: /admin/students/create
+        [HttpGet("create")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Student/Create
-        [HttpPost]
+        // POST: /admin/students
+        [HttpPost("")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("StudentCode,FullName,Email,PhoneNumber,DateOfBirth,Address,Gender,Major,AcademicYear,Notes")] Student student)
         {
@@ -123,7 +127,8 @@ namespace Web_SIMS.Controllers
             return View(student);
         }
 
-        // GET: Student/Edit/5
+        // GET: /admin/students/edit/{id}
+        [HttpGet("edit/{id}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -139,8 +144,9 @@ namespace Web_SIMS.Controllers
             return View(student);
         }
 
-        // POST: Student/Edit/5
-        [HttpPost]
+        // POST: /admin/students/{id}
+        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("StudentId,StudentCode,FullName,Email,PhoneNumber,DateOfBirth,Address,Gender,Major,AcademicYear,Notes,IsActive")] Student student)
         {
@@ -190,7 +196,8 @@ namespace Web_SIMS.Controllers
             return View(student);
         }
 
-        // GET: Student/Delete/5
+        // GET: /admin/students/delete/{id}
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -208,8 +215,9 @@ namespace Web_SIMS.Controllers
             return View(student);
         }
 
-        // POST: Student/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // DELETE: /admin/students/{id}
+        [HttpPost("delete/{id}")]
+        [HttpDelete("{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
