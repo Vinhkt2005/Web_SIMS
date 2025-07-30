@@ -1,0 +1,39 @@
+@model Web_SIMS.ViewModels.ClassGradesViewModel
+@{
+    ViewData["Title"] = "Nhập điểm";
+}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Nhập điểm - @Model.CourseName</h1>
+    <form asp-action="Grades" asp-route-classId="@Model.CourseId" method="post">
+        <div class="card shadow">
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>SV</th>
+                            <th>Giữa kỳ</th>
+                            <th>Cuối kỳ</th>
+                            <th>Tổng kết</th>
+                            <th>Xếp loại</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Students.Count; i++)
+                        {
+                            <tr>
+                                <td>@Model.Students[i].StudentName</td>
+                                <td><input type="number" step="0.1" class="form-control" name="Students[@i].MidtermScore" value="@Model.Students[i].MidtermScore" /></td>
+                                <td><input type="number" step="0.1" class="form-control" name="Students[@i].FinalScore" value="@Model.Students[i].FinalScore" /></td>
+                                <td>@Model.Students[i].TotalScore</td>
+                                <td>@Model.Students[i].Grade</td>
+                                <input type="hidden" name="Students[@i].StudentId" value="@Model.Students[i].StudentId" />
+                                <input type="hidden" name="Students[@i].StudentName" value="@Model.Students[i].StudentName" />
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-primary">Lưu</button>
+            </div>
+        </div>
+    </form>
+</div>

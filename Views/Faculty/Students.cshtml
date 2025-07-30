@@ -1,0 +1,30 @@
+@model Web_SIMS.ViewModels.ClassStudentsViewModel
+@{
+    ViewData["Title"] = "Danh sách sinh viên";
+}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Sinh viên lớp @Model.Course.CourseName</h1>
+    <div class="card shadow">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã SV</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.Enrollments)
+                    {
+                        <tr>
+                            <td>@e.Student?.StudentCode</td>
+                            <td>@e.Student?.FullName</td>
+                            <td>@e.Student?.Email</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
