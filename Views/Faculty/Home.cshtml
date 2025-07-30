@@ -1,0 +1,25 @@
+@model Web_SIMS.ViewModels.FacultyHomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ Giảng viên";
+}
+<div class="container-fluid">
+    <h1 class="h3 mb-4"><i class="fas fa-chalkboard-teacher me-2"></i>Trang chủ Giảng viên</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Lớp đang dạy</h5>
+                    <p class="display-6">@Model.ClassCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng sinh viên</h5>
+                    <p class="display-6">@Model.StudentCount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
