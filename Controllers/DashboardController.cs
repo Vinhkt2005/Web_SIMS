@@ -8,8 +8,9 @@ using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-    [Authorize]
-    public class DashboardController : Controller
+[Authorize]
+[Route("admin/dashboard")]
+public class DashboardController : Controller
     {
         private readonly AppDbContext _context;
         private readonly ILogger<DashboardController> _logger;
@@ -20,6 +21,7 @@ namespace Web_SIMS.Controllers
             _logger = logger;
         }
 
+        [HttpGet("")]
         public async Task<IActionResult> Index()
         {
             try

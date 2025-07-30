@@ -8,8 +8,9 @@ using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-    [Authorize]
-    public class EnrollmentController : Controller
+[Authorize]
+[Route("admin/enrollments")]
+public class EnrollmentController : Controller
     {
         private readonly AppDbContext _context;
         private readonly ILogger<EnrollmentController> _logger;
@@ -20,7 +21,8 @@ namespace Web_SIMS.Controllers
             _logger = logger;
         }
 
-        // GET: Enrollment
+        // GET: /admin/enrollments
+        [HttpGet("")]
         public async Task<IActionResult> Index(string searchString, string statusFilter, int? pageNumber)
         {
             ViewData["CurrentFilter"] = searchString;
@@ -52,7 +54,8 @@ namespace Web_SIMS.Controllers
             return View(await PaginatedList<Enrollment>.CreateAsync(enrollments.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
-        // GET: Enrollment/Details/5
+        // GET: /admin/enrollments/{id}
+        [HttpGet("{id}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -73,8 +76,9 @@ namespace Web_SIMS.Controllers
             return View(enrollment);
         }
 
-        // GET: Enrollment/Create
+        // GET: /admin/enrollments/create
         [Authorize(Roles = "Admin,Faculty")]
+        [HttpGet("create")]
         public async Task<IActionResult> Create()
         {
             ViewData["StudentId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Students.Where(s => s.IsActive), "StudentId", "FullName");
@@ -82,8 +86,8 @@ namespace Web_SIMS.Controllers
             return View();
         }
 
-        // POST: Enrollment/Create
-        [HttpPost]
+        // POST: /admin/enrollments
+        [HttpPost("")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> Create([Bind("StudentId,CourseId,Notes")] Enrollment enrollment)
@@ -131,8 +135,9 @@ namespace Web_SIMS.Controllers
             return View(enrollment);
         }
 
-        // GET: Enrollment/Edit/5
+        // GET: /admin/enrollments/edit/{id}
         [Authorize(Roles = "Admin,Faculty")]
+        [HttpGet("edit/{id}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -153,8 +158,9 @@ namespace Web_SIMS.Controllers
             return View(enrollment);
         }
 
-        // POST: Enrollment/Edit/5
-        [HttpPost]
+        // POST: /admin/enrollments/{id}
+        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> Edit(int id, [Bind("EnrollmentId,StudentId,CourseId,EnrollmentDate,Status,Notes")] Enrollment enrollment)
@@ -190,8 +196,8 @@ namespace Web_SIMS.Controllers
             return View(enrollment);
         }
 
-        // POST: Enrollment/Approve/5
-        [HttpPost]
+        // POST: /admin/enrollments/approve/{id}
+        [HttpPost("approve/{id}")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> Approve(int id)
@@ -224,8 +230,8 @@ namespace Web_SIMS.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Enrollment/Reject/5
-        [HttpPost]
+        // POST: /admin/enrollments/reject/{id}
+        [HttpPost("reject/{id}")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> Reject(int id)
@@ -245,8 +251,9 @@ namespace Web_SIMS.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Enrollment/Delete/5
+        // GET: /admin/enrollments/delete/{id}
         [Authorize(Roles = "Admin,Faculty")]
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -267,8 +274,9 @@ namespace Web_SIMS.Controllers
             return View(enrollment);
         }
 
-        // POST: Enrollment/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // DELETE: /admin/enrollments/{id}
+        [HttpPost("delete/{id}")]
+        [HttpDelete("{id}")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> DeleteConfirmed(int id)
