@@ -15,11 +15,13 @@ namespace Web_SIMS.Helpers
             }
         }
 
-        public static string GenerateSalt()
+        public static string GenerateSalt(int size = 16)
         {
-            var random = new Random();
-            var salt = new byte[16];
-            random.NextBytes(salt);
+            var salt = new byte[size];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
             return Convert.ToBase64String(salt);
         }
 
