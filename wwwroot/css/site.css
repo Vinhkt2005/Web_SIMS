@@ -268,3 +268,86 @@ body {
 .border-radius-custom {
     border-radius: 15px;
 }
+
+/* UI Enhancements */
+.hero-image {
+    opacity: 0.8;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.feature-icon,
+.stat-icon {
+    transition: transform 0.3s ease;
+}
+
+.card:hover .feature-icon,
+.stat-icon:hover {
+    transform: scale(1.1);
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group form {
+    display: inline;
+}
+
+.table th a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.table th a:hover {
+    color: var(--primary-color);
+}
+
+.error-page {
+    padding: 60px 0;
+}
+
+.display-1 {
+    font-size: 6rem;
+    font-weight: 300;
+}
