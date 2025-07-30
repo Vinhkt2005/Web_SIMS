@@ -69,5 +69,6 @@ namespace Web_SIMS.Models
         // Navigation Properties
         public virtual ICollection<Enrollment>? Enrollments { get; set; }
         public virtual ICollection<AcademicRecord>? AcademicRecords { get; set; }
+        public virtual User? User { get; set; }
     }
 }
