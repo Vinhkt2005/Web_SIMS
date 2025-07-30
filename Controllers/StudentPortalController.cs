@@ -8,7 +8,6 @@ using Web_SIMS.Models;
 namespace Web_SIMS.Controllers
 {
     [Authorize(Roles = "Student")]
-    [Route("student")]
     public class StudentPortalController : Controller
     {
         private readonly AppDbContext _context;
@@ -29,7 +28,6 @@ namespace Web_SIMS.Controllers
             return null;
         }
 
-        [HttpGet("home")]
         public async Task<IActionResult> Home()
         {
             var studentId = GetCurrentStudentId();
@@ -67,7 +65,6 @@ namespace Web_SIMS.Controllers
             return View(model);
         }
 
-        [HttpGet("courses")]
         public async Task<IActionResult> Courses()
         {
             var studentId = GetCurrentStudentId();
@@ -86,7 +83,6 @@ namespace Web_SIMS.Controllers
             return View(courses);
         }
 
-        [HttpGet("courses/{id}")]
         public async Task<IActionResult> CourseDetails(int id)
         {
             var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == id);
@@ -97,7 +93,6 @@ namespace Web_SIMS.Controllers
             return View(course);
         }
 
-        [HttpGet("profile")]
         public async Task<IActionResult> Profile()
         {
             var studentId = GetCurrentStudentId();

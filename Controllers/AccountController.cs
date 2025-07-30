@@ -55,34 +55,44 @@ namespace Web_SIMS.Controllers
                 }
 
                 // Tìm kiếm người dùng theo tên đăng nhập
+                _logger.LogInformation($"Đang tìm kiếm user: {model.Username}");
                 var user = await _context.Users
                     .Include(u => u.Role)
                     .FirstOrDefaultAsync(u => u.Username == model.Username && u.IsActive);
 
                 if (user == null)
                 {
+                    _logger.LogWarning($"Không tìm thấy user: {model.Username}");
                     ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
-                    _logger.LogWarning($"Đăng nhập thất bại cho người dùng {model.Username}");
                     return View(model);
                 }
 
+                _logger.LogInformation($"Tìm thấy user: {user.Username}, Role: {user.Role?.RoleName}, IsActive: {user.IsActive}");
+
                 // Kiểm tra mật khẩu đã hash hoặc plain text (để tương thích với dữ liệu cũ)
+                _logger.LogInformation($"Kiểm tra password cho user: {user.Username}");
+                _logger.LogInformation($"Input password: {model.Password}");
+                _logger.LogInformation($"Stored password: {user.Password}");
+                _logger.LogInformation($"PasswordSalt: {user.PasswordSalt}");
+                
                 bool isPasswordValid = false;
                 if (!string.IsNullOrEmpty(user.PasswordSalt))
                 {
                     // Sử dụng hash + salt
                     isPasswordValid = PasswordHelper.VerifyPassword(model.Password, user.Password, user.PasswordSalt);
+                    _logger.LogInformation($"Using hash verification: {isPasswordValid}");
                 }
                 else
                 {
                     // Fallback cho dữ liệu cũ (plain text)
                     isPasswordValid = user.Password == model.Password;
+                    _logger.LogInformation($"Using plain text comparison: {isPasswordValid}");
                 }
 
                 if (!isPasswordValid)
                 {
+                    _logger.LogWarning($"Password không đúng cho user: {model.Username}");
                     ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
-                    _logger.LogWarning($"Đăng nhập thất bại cho người dùng {model.Username}");
                     return View(model);
                 }
 
@@ -115,12 +125,29 @@ namespace Web_SIMS.Controllers
                     claimsPrincipal,
                     authProperties);
 
-                // Chuyển hướng đến trang yêu cầu hoặc dashboard
+                // Chuyển hướng đến trang yêu cầu hoặc trang chủ tương ứng với role
                 if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 {
                     return Redirect(model.ReturnUrl);
                 }
-                return RedirectToAction("Index", "Dashboard");
+                
+                // Redirect theo role
+                if (user.Role?.RoleName == "Admin")
+                {
+                    return RedirectToAction("Index", "Dashboard");
+                }
+                else if (user.Role?.RoleName == "Faculty")
+                {
+                    return RedirectToAction("Home", "Faculty");
+                }
+                else if (user.Role?.RoleName == "Student")
+                {
+                    return RedirectToAction("Home", "StudentPortal");
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
             catch (Exception ex)
             {

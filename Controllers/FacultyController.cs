@@ -11,7 +11,6 @@ using Web_SIMS.ViewModels;
 namespace Web_SIMS.Controllers
 {
     [Authorize(Roles = "Faculty")]
-    [Route("faculty")]
     public class FacultyController : Controller
     {
         private readonly AppDbContext _context;
@@ -23,7 +22,6 @@ namespace Web_SIMS.Controllers
             _logger = logger;
         }
 
-        [HttpGet("home")]
         public async Task<IActionResult> Home()
         {
             var facultyName = User.FindFirst("FullName")?.Value ?? string.Empty;
@@ -43,8 +41,7 @@ namespace Web_SIMS.Controllers
             return View(viewModel);
         }
 
-        [HttpGet("classes")]
-        public async Task<IActionResult> Classes()
+        public async Task<IActionResult> MyClasses()
         {
             var facultyName = User.FindFirst("FullName")?.Value ?? string.Empty;
             var courses = await _context.Courses
@@ -54,8 +51,7 @@ namespace Web_SIMS.Controllers
             return View(courses);
         }
 
-        [HttpGet("classes/{classId}/students")]
-        public async Task<IActionResult> Students(int classId)
+        public async Task<IActionResult> ClassStudents(int classId)
         {
             var facultyName = User.FindFirst("FullName")?.Value ?? string.Empty;
             var course = await _context.Courses
@@ -75,8 +71,7 @@ namespace Web_SIMS.Controllers
             return View(viewModel);
         }
 
-        [HttpGet("classes/{classId}/grades")]
-        public async Task<IActionResult> Grades(int classId)
+        public async Task<IActionResult> EnterGrades(int classId)
         {
             var facultyName = User.FindFirst("FullName")?.Value ?? string.Empty;
             var course = await _context.Courses
@@ -97,8 +92,8 @@ namespace Web_SIMS.Controllers
                 {
                     var record = course.AcademicRecords?.FirstOrDefault(ar => ar.StudentId == e.StudentId);
                     return new StudentGradeViewModel
-                    {
-                        StudentId = e.StudentId,
+                {
+                    StudentId = e.StudentId,
                         StudentName = e.Student?.FullName ?? string.Empty,
                         MidtermScore = record?.MidtermScore,
                         FinalScore = record?.FinalScore,
@@ -110,9 +105,9 @@ namespace Web_SIMS.Controllers
             return View(viewModel);
         }
 
-        [HttpPost("classes/{classId}/grades")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Grades(int classId, ClassGradesViewModel model)
+        public async Task<IActionResult> EnterGrades(int classId, ClassGradesViewModel model)
         {
             var facultyName = User.FindFirst("FullName")?.Value ?? string.Empty;
             var course = await _context.Courses
@@ -153,9 +148,9 @@ namespace Web_SIMS.Controllers
                 record.UpdatedDate = DateTime.Now;
             }
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Đã cập nhật điểm.";
-            return RedirectToAction(nameof(Grades), new { classId });
+            return RedirectToAction(nameof(EnterGrades), new { classId });
         }
 
         private string GetGrade(decimal score)

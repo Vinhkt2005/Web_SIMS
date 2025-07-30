@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Web_SIMS.Data;
 
@@ -11,7 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Authentication & Authorization
-builder.Services.AddAuthentication("Cookies")
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
@@ -59,6 +60,18 @@ using (var scope = app.Services.CreateScope())
 
         // Ensure database is created
         context.Database.EnsureCreated();
+
+        // Seed data if database is empty
+        if (!context.Roles.Any())
+        {
+            logger.LogInformation("Seeding database with initial data...");
+            context.SeedData();
+            logger.LogInformation("Database seeded successfully.");
+        }
+        else
+        {
+            logger.LogInformation("Database already contains data.");
+        }
 
         logger.LogInformation("Database initialized successfully.");
     }

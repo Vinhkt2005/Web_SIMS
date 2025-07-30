@@ -29,25 +29,49 @@
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                                </a>
-                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                    </a>
+                                </li>
+                            }
                             @if (User.IsInRole("Faculty"))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link" asp-controller="Faculty" asp-action="Home">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i>Lớp của tôi
+                                        <i class="fas fa-chalkboard-teacher me-1"></i>Trang chủ
                                     </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-chalkboard-teacher me-1"></i>Giảng dạy
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Faculty" asp-action="MyClasses"><i class="fas fa-book me-2"></i>Lớp của tôi</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Báo cáo điểm số</a></li>
+                                    </ul>
                                 </li>
                             }
                             @if (User.IsInRole("Student"))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link" asp-controller="StudentPortal" asp-action="Home">
-                                        <i class="fas fa-user-graduate me-1"></i>Sinh viên
+                                        <i class="fas fa-user-graduate me-1"></i>Trang chủ
                                     </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-user-graduate me-1"></i>Học tập
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="StudentPortal" asp-action="Courses"><i class="fas fa-book me-2"></i>Môn học của tôi</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Điểm số</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="StudentPortal" asp-action="Profile"><i class="fas fa-user me-2"></i>Hồ sơ</a></li>
+                                    </ul>
                                 </li>
                             }
                             @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))

@@ -34,11 +34,13 @@ namespace Web_SIMS.Data
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
+            // Cấu hình User-Student relationship
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Student)
                 .WithOne()
                 .HasForeignKey<User>(u => u.StudentId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             // Cấu hình Role
             modelBuilder.Entity<Role>(entity =>
@@ -129,6 +131,69 @@ namespace Web_SIMS.Data
 
             // Seed data
             SeedData(modelBuilder);
+        }
+
+        public void SeedData()
+        {
+            try
+            {
+                // Seed Roles if not exists
+                if (!Roles.Any())
+                {
+                    Roles.AddRange(
+                        new Role { RoleId = 1, RoleName = "Admin", Description = "Quản trị viên hệ thống", IsActive = true },
+                        new Role { RoleId = 2, RoleName = "Faculty", Description = "Giảng viên", IsActive = true },
+                        new Role { RoleId = 3, RoleName = "Student", Description = "Sinh viên", IsActive = true }
+                    );
+                    SaveChanges();
+                }
+
+                // Seed Students if not exists
+                if (!Students.Any())
+                {
+                    Students.AddRange(
+                        new Student { StudentId = 1, StudentCode = "SV001", FullName = "Nguyễn Văn A", Email = "nguyenvana@sims.edu", PhoneNumber = "0123456789", DateOfBirth = new DateTime(2000, 1, 1), Address = "Hà Nội", Gender = "Nam", Major = "Công nghệ thông tin", AcademicYear = "2024-2025", EnrollmentDate = DateTime.Now, IsActive = true, CreatedDate = DateTime.Now },
+                        new Student { StudentId = 2, StudentCode = "SV002", FullName = "Trần Thị B", Email = "tranthib@sims.edu", PhoneNumber = "0987654321", DateOfBirth = new DateTime(2001, 5, 15), Address = "TP.HCM", Gender = "Nữ", Major = "Kinh tế", AcademicYear = "2024-2025", EnrollmentDate = DateTime.Now, IsActive = true, CreatedDate = DateTime.Now }
+                    );
+                    SaveChanges();
+                }
+
+                // Seed Users if not exists
+                if (!Users.Any())
+                {
+                    Users.AddRange(
+                        new User { UserId = 1, Username = "admin", Password = "admin123", Email = "admin@sims.edu", FullName = "Administrator", RoleId = 1, IsActive = true, CreatedDate = DateTime.Now },
+                        new User { UserId = 2, Username = "faculty1", Password = "faculty123", Email = "faculty1@sims.edu", FullName = "Giảng viên 1", RoleId = 2, IsActive = true, CreatedDate = DateTime.Now },
+                        new User { UserId = 3, Username = "student1", Password = "student123", Email = "student1@sims.edu", FullName = "Sinh viên 1", RoleId = 3, StudentId = 1, IsActive = true, CreatedDate = DateTime.Now }
+                    );
+                    SaveChanges();
+                }
+
+                // Seed Courses if not exists
+                if (!Courses.Any())
+                {
+                    Courses.AddRange(
+                        new Course { CourseId = 1, CourseCode = "CS101", CourseName = "Lập trình Cơ bản", Description = "Khóa học lập trình cơ bản cho sinh viên", Credits = 3, MaxStudents = 50, Semester = "Học kỳ 1", AcademicYear = "2024-2025", Instructor = "TS. Nguyễn Văn Giảng", IsActive = true, CreatedDate = DateTime.Now },
+                        new Course { CourseId = 2, CourseCode = "CS102", CourseName = "Cơ sở dữ liệu", Description = "Khóa học về cơ sở dữ liệu", Credits = 3, MaxStudents = 40, Semester = "Học kỳ 1", AcademicYear = "2024-2025", Instructor = "TS. Trần Thị Giảng", IsActive = true, CreatedDate = DateTime.Now }
+                    );
+                    SaveChanges();
+                }
+
+                // Seed Enrollments if not exists
+                if (!Enrollments.Any())
+                {
+                    Enrollments.AddRange(
+                        new Enrollment { StudentId = 1, CourseId = 1, EnrollmentDate = DateTime.Now, Status = EnrollmentStatus.Approved },
+                        new Enrollment { StudentId = 1, CourseId = 2, EnrollmentDate = DateTime.Now, Status = EnrollmentStatus.Approved }
+                    );
+                    SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't throw
+                Console.WriteLine($"Error seeding data: {ex.Message}");
+            }
         }
 
         private void SeedData(ModelBuilder modelBuilder)
