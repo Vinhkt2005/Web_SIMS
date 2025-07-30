@@ -34,6 +34,12 @@ namespace Web_SIMS.Data
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Student)
+                .WithOne()
+                .HasForeignKey<User>(u => u.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Cấu hình Role
             modelBuilder.Entity<Role>(entity =>
             {
@@ -166,6 +172,7 @@ namespace Web_SIMS.Data
                     Email = "student1@sims.edu",
                     FullName = "Sinh viên 1",
                     RoleId = 3,
+                    StudentId = 1,
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 }

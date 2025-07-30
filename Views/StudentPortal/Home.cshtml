@@ -1,0 +1,51 @@
+@model Web_SIMS.ViewModels.StudentHomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ Sinh viên";
+}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-user-graduate me-2"></i>Trang chủ Sinh viên</h2>
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Môn đang học</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CurrentCourses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">GPA hiện tại</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CurrentGpa.ToString("F2")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tổng tín chỉ</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalCredits</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Môn hoàn thành</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CompletedCourses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-3">
+        <a class="btn btn-primary" asp-action="Courses"><i class="fas fa-book-open me-2"></i>Môn học của tôi</a>
+        <a class="btn btn-secondary" asp-action="Profile"><i class="fas fa-id-card me-2"></i>Hồ sơ</a>
+    </div>
+</div>
+<style>
+    .border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+    .border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+    .border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+    .border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+</style>
