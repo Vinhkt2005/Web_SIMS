@@ -1,0 +1,827 @@
+@model Web_SIMS.Models.Faculty
+
+@{
+    ViewData["Title"] = "Chi tiết Giảng viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/faculty-details.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Giảng viên</a></li>
+                <li class="breadcrumb-item active">Chi tiết giảng viên</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-tie me-2 text-primary"></i>Chi tiết giảng viên
+        </h1>
+        <p class="text-muted mb-0">Thông tin chi tiết của giảng viên @Model.FullName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.FacultyId" class="btn btn-warning">
+            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+        </a>
+        <a asp-action="Delete" asp-route-id="@Model.FacultyId" class="btn btn-outline-danger">
+            <i class="fas fa-trash me-2"></i>Xóa
+        </a>
+    </div>
+</div>
+
+<!-- Faculty Profile Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="faculty-profile-card">
+            <!-- Faculty Header -->
+            <div class="faculty-header">
+                <div class="faculty-avatar">
+                    <div class="avatar-circle">
+                        <span class="avatar-text">@Model.FullName.Substring(0, 1).ToUpper()</span>
+                    </div>
+                    <div class="status-indicator @(Model.IsActive ? "active" : "inactive")"></div>
+                </div>
+                <div class="faculty-info">
+                    <h2 class="faculty-name">@Model.FullName</h2>
+                    <div class="faculty-meta">
+                        <span class="faculty-code">@Model.FacultyCode</span>
+                        <span class="separator">•</span>
+                        <span class="faculty-department">@(Model.Department ?? "Chưa phân khoa")</span>
+                    </div>
+                    <div class="faculty-specialization">
+                        <i class="fas fa-microscope me-1"></i>
+                        @(Model.Specialization ?? "Chưa cập nhật chuyên môn")
+                    </div>
+                </div>
+                <div class="faculty-status">
+                    @if (Model.IsActive)
+                    {
+                        <span class="status-badge active">
+                            <i class="fas fa-check-circle"></i>
+                            Đang hoạt động
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="status-badge inactive">
+                            <i class="fas fa-times-circle"></i>
+                            Không hoạt động
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="details-container">
+
+            <!-- Personal Information Section -->
+            <div class="details-section">
+                <div class="section-header">
+                    <div class="section-icon personal">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="section-title">
+                        <h4>Thông tin cá nhân</h4>
+                        <p>Thông tin cơ bản của giảng viên</p>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-id-card"></i>
+                                    Mã giảng viên
+                                </div>
+                                <div class="info-value">@Model.FacultyCode</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-user"></i>
+                                    Họ và tên
+                                </div>
+                                <div class="info-value">@Model.FullName</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-envelope"></i>
+                                    Email
+                                </div>
+                                <div class="info-value">
+                                    <a href="mailto:@Model.Email" class="email-link">@Model.Email</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-phone"></i>
+                                    Số điện thoại
+                                </div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                    {
+                                        <a href="tel:@Model.PhoneNumber" class="phone-link">@Model.PhoneNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-birthday-cake"></i>
+                                    Ngày sinh
+                                </div>
+                                <div class="info-value">
+                                    @if (Model.DateOfBirth.HasValue)
+                                    {
+                                        @Model.DateOfBirth.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-venus-mars"></i>
+                                    Giới tính
+                                </div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Gender))
+                                    {
+                                        @Model.Gender
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Địa chỉ
+                                </div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Address))
+                                    {
+                                        @Model.Address
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Information Section -->
+            <div class="details-section">
+                <div class="section-header">
+                    <div class="section-icon academic">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="section-title">
+                        <h4>Thông tin học thuật</h4>
+                        <p>Khoa, chuyên môn và trạng thái hoạt động</p>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-building"></i>
+                                    Khoa
+                                </div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Department))
+                                    {
+                                        @Model.Department
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa phân khoa</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-microscope"></i>
+                                    Chuyên môn
+                                </div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Specialization))
+                                    {
+                                        @Model.Specialization
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Information Section -->
+            <div class="details-section">
+                <div class="section-header">
+                    <div class="section-icon account">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="section-title">
+                        <h4>Tài khoản đăng nhập</h4>
+                        <p>Thông tin tài khoản và quyền hạn</p>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-user-circle"></i>
+                                    Tài khoản
+                                </div>
+                                <div class="info-value">
+                                    @if (Model.User != null)
+                                    {
+                                        <span class="account-badge active">
+                                            <i class="fas fa-check-circle"></i>
+                                            @Model.User.Username
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="account-badge inactive">
+                                            <i class="fas fa-times-circle"></i>
+                                            Chưa có tài khoản
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        @if (Model.User != null)
+                        {
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-shield-alt"></i>
+                                        Vai trò
+                                    </div>
+                                    <div class="info-value">
+                                        <span class="role-badge">
+                                            @Model.User.Role?.RoleName
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-power-off"></i>
+                                        Trạng thái tài khoản
+                                    </div>
+                                    <div class="info-value">
+                                        @if (Model.User.IsActive)
+                                        {
+                                            <span class="account-status active">
+                                                <i class="fas fa-check-circle"></i>
+                                                Hoạt động
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="account-status inactive">
+                                                <i class="fas fa-times-circle"></i>
+                                                Bị khóa
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information Section -->
+            <div class="details-section">
+                <div class="section-header">
+                    <div class="section-icon system">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="section-title">
+                        <h4>Thông tin hệ thống</h4>
+                        <p>Ngày tạo và cập nhật gần nhất</p>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-plus-circle"></i>
+                                    Ngày tạo
+                                </div>
+                                <div class="info-value">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                        @if (Model.UpdatedDate.HasValue)
+                        {
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-edit"></i>
+                                        Cập nhật cuối
+                                    </div>
+                                    <div class="info-value">@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Section -->
+            @if (Model.Courses != null && Model.Courses.Any())
+            {
+                <div class="details-section">
+                    <div class="section-header">
+                        <div class="section-icon courses">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="section-title">
+                            <h4>Môn học giảng dạy</h4>
+                            <p>Danh sách các môn học được phân công</p>
+                        </div>
+                        <div class="section-stats">
+                            <span class="course-count">@Model.Courses.Count(c => c.IsActive) môn học</span>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="courses-grid">
+                            @foreach (var course in Model.Courses.Where(c => c.IsActive))
+                            {
+                                <div class="course-card">
+                                    <div class="course-header">
+                                        <div class="course-code">@course.CourseCode</div>
+                                        <div class="course-status active">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                    </div>
+                                    <div class="course-body">
+                                        <h5 class="course-name">@course.CourseName</h5>
+                                        <div class="course-details">
+                                            <div class="course-detail">
+                                                <i class="fas fa-credit-card"></i>
+                                                <span>@course.Credits tín chỉ</span>
+                                            </div>
+                                            <div class="course-detail">
+                                                <i class="fas fa-calendar"></i>
+                                                <span>Học kỳ @course.Semester</span>
+                                            </div>
+                                            <div class="course-detail">
+                                                <i class="fas fa-graduation-cap"></i>
+                                                <span>@course.AcademicYear</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="details-section">
+                    <div class="section-header">
+                        <div class="section-icon courses">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="section-title">
+                            <h4>Môn học giảng dạy</h4>
+                            <p>Danh sách các môn học được phân công</p>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h5>Chưa có môn học nào</h5>
+                            <p>Giảng viên này chưa được phân công giảng dạy môn học nào.</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="action-buttons-container">
+            <div class="primary-actions">
+                <a asp-action="Edit" asp-route-id="@Model.FacultyId" class="btn btn-warning btn-lg">
+                    <i class="fas fa-edit me-2"></i>Chỉnh sửa thông tin
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-list me-2"></i>Danh sách giảng viên
+                </a>
+            </div>
+            <div class="danger-actions">
+                <a asp-action="Delete" asp-route-id="@Model.FacultyId" class="btn btn-outline-danger btn-lg">
+                    <i class="fas fa-trash me-2"></i>Xóa giảng viên
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add interactive hover effects
+            const infoItems = document.querySelectorAll('.info-item');
+            infoItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                    this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                });
+            });
+
+            // Add click-to-copy functionality for contact info
+            const emailLinks = document.querySelectorAll('.email-link');
+            const phoneLinks = document.querySelectorAll('.phone-link');
+            
+            emailLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const email = this.textContent;
+                    copyToClipboard(email, 'Email đã được sao chép!');
+                });
+            });
+            
+            phoneLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const phone = this.textContent;
+                    copyToClipboard(phone, 'Số điện thoại đã được sao chép!');
+                });
+            });
+
+            // Add section collapse/expand functionality
+            const sectionHeaders = document.querySelectorAll('.section-header');
+            sectionHeaders.forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    const section = this.closest('.details-section');
+                    const content = section.querySelector('.section-content');
+                    const isCollapsed = content.style.display === 'none';
+                    
+                    if (isCollapsed) {
+                        content.style.display = 'block';
+                        content.style.animation = 'slideDown 0.3s ease';
+                        this.classList.remove('collapsed');
+                    } else {
+                        content.style.animation = 'slideUp 0.3s ease';
+                        setTimeout(() => {
+                            content.style.display = 'none';
+                        }, 300);
+                        this.classList.add('collapsed');
+                    }
+                });
+            });
+
+            // Add course card interactions
+            const courseCards = document.querySelectorAll('.course-card');
+            courseCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Add click effect
+                    this.style.transform = 'translateY(-2px) scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = 'translateY(-4px) scale(1)';
+                    }, 150);
+                });
+            });
+
+            // Add confirmation for delete action
+            const deleteBtn = document.querySelector('a[href*="Delete"]');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showConfirmDialog(
+                        'Xác nhận xóa giảng viên',
+                        'Bạn có chắc chắn muốn xóa giảng viên này? Hành động này không thể hoàn tác.',
+                        () => {
+                            window.location.href = this.href;
+                        }
+                    );
+                });
+            }
+
+            // Add loading states for action buttons
+            const actionButtons = document.querySelectorAll('.btn-lg');
+            actionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (!this.href.includes('Delete')) {
+                        this.style.opacity = '0.7';
+                        this.style.pointerEvents = 'none';
+                        
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang tải...';
+                        
+                        // Restore after navigation (fallback)
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                            this.style.opacity = '1';
+                            this.style.pointerEvents = 'auto';
+                        }, 3000);
+                    }
+                });
+            });
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + E for edit
+                if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                    e.preventDefault();
+                    const editBtn = document.querySelector('a[href*="Edit"]');
+                    if (editBtn) editBtn.click();
+                }
+                
+                // Escape to go back
+                if (e.key === 'Escape') {
+                    const backBtn = document.querySelector('a[href*="Index"]');
+                    if (backBtn) backBtn.click();
+                }
+            });
+
+            // Add print functionality
+            const printBtn = document.createElement('button');
+            printBtn.className = 'btn btn-outline-secondary btn-sm';
+            printBtn.innerHTML = '<i class="fas fa-print me-2"></i>In thông tin';
+            printBtn.style.position = 'fixed';
+            printBtn.style.bottom = '20px';
+            printBtn.style.right = '20px';
+            printBtn.style.zIndex = '1000';
+            printBtn.addEventListener('click', () => window.print());
+            document.body.appendChild(printBtn);
+        });
+
+        // Utility functions
+        function copyToClipboard(text, message) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(message, 'success');
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast(message, 'success');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#dc2626' : '#3b82f6'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 9999;
+                animation: slideInRight 0.3s ease;
+                font-size: 0.875rem;
+                max-width: 300px;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function showConfirmDialog(title, message, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                padding: 2rem;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                animation: scaleIn 0.3s ease;
+            `;
+            
+            dialog.innerHTML = `
+                <h4 style="margin: 0 0 1rem 0; color: #1f2937;">${title}</h4>
+                <p style="margin: 0 0 2rem 0; color: #6b7280; line-height: 1.5;">${message}</p>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button class="cancel-btn" style="
+                        padding: 0.75rem 1.5rem;
+                        border: 2px solid #e5e7eb;
+                        background: white;
+                        color: #6b7280;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                    ">Hủy</button>
+                    <button class="confirm-btn" style="
+                        padding: 0.75rem 1.5rem;
+                        border: none;
+                        background: #dc2626;
+                        color: white;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                    ">Xác nhận</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            const cancelBtn = dialog.querySelector('.cancel-btn');
+            const confirmBtn = dialog.querySelector('.confirm-btn');
+            
+            cancelBtn.addEventListener('click', () => {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                    }
+                }, 300);
+            });
+            
+            confirmBtn.addEventListener('click', () => {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                    }
+                    onConfirm();
+                }, 300);
+            });
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    cancelBtn.click();
+                }
+            });
+            
+            // Close on Escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    cancelBtn.click();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        // Add CSS animations for dialogs and toasts
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @@keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            @@keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @@keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            
+            @@keyframes scaleIn {
+                from { opacity: 0; transform: scale(0.9); }
+                to { opacity: 1; transform: scale(1); }
+            }
+            
+            @@keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @@keyframes slideUp {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-10px); }
+            }
+            
+            .section-header.collapsed::after {
+                content: ' (Thu gọn)';
+                font-size: 0.75rem;
+                opacity: 0.7;
+            }
+            
+            .toast-content {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .cancel-btn:hover {
+                background: #f9fafb !important;
+                border-color: #d1d5db !important;
+                color: #374151 !important;
+            }
+            
+            .confirm-btn:hover {
+                background: #b91c1c !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

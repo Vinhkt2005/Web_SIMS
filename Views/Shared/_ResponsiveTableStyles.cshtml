@@ -1,0 +1,827 @@
+@{
+    Layout = null;
+}
+
+<style>
+/* Responsive Table Improvements */
+.table-responsive {
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+/* Fixed width for action column */
+.table th:last-child,
+.table td:last-child {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+    white-space: nowrap;
+}
+
+/* Cải thiện hiển thị chung cho tất cả bảng */
+.table-responsive {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+}
+
+.table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+/* Đảm bảo text không bị overflow */
+.table th,
+.table td {
+    position: relative;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Ensure table doesn't exceed container */
+.table {
+    min-width: 800px; /* Minimum width to prevent cramping */
+}
+
+/* Action buttons container */
+.action-buttons {
+    position: relative;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Quick actions - hidden by default, shown on hover */
+.quick-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    padding: 4px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+/* Show quick actions on row hover */
+tr:hover .quick-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Action button styles */
+.btn-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action-primary {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+}
+
+.btn-action-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.btn-action-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-action-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.btn-action-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+}
+
+.btn-action-info {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    color: white;
+}
+
+/* Dropdown toggle for mobile */
+.action-dropdown-toggle {
+    display: none;
+}
+
+/* Responsive breakpoints */
+@@media (max-width: 1400px) {
+    /* Hide Chuyên môn column on smaller screens */
+    .table th:nth-child(5),
+    .table td:nth-child(5) {
+        display: none;
+    }
+}
+
+@@media (max-width: 1200px) {
+    /* Hide Tài khoản column */
+    .table th:nth-child(6),
+    .table td:nth-child(6) {
+        display: none;
+    }
+    
+    /* Make table more compact */
+    .table th,
+    .table td {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.9rem;
+    }
+}
+
+@@media (max-width: 992px) {
+    /* Hide Email column on tablets */
+    .table th:nth-child(3),
+    .table td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Reduce action button size */
+    .btn-action {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .quick-actions {
+        gap: 2px;
+        padding: 2px;
+    }
+}
+
+@@media (max-width: 768px) {
+    /* Mobile view - hide quick actions, show dropdown only */
+    .quick-actions {
+        display: none !important;
+    }
+    
+    .action-dropdown-toggle {
+        display: block !important;
+    }
+    
+    /* Hide Khoa column on mobile */
+    .table th:nth-child(4),
+    .table td:nth-child(4) {
+        display: none;
+    }
+    
+    /* Make table more compact */
+    .table td,
+    .table th {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Stack content in cells */
+    .table td > div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .table td small {
+        font-size: 0.75rem;
+    }
+}
+
+@@media (max-width: 576px) {
+    /* Extra small screens */
+    .table th:nth-child(3),
+    .table td:nth-child(3) {
+        display: none;
+    }
+    
+    .table td,
+    .table th {
+        padding: 0.375rem 0.125rem;
+        font-size: 0.8rem;
+    }
+    
+    .action-buttons {
+        min-width: 60px;
+    }
+    
+    .btn-action {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+}
+
+/* Faculty Management specific styles */
+.faculty-table .table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 700px; /* Giảm min-width do bỏ thêm cột email */
+}
+
+/* Tính toán lại width cho 5 cột (bỏ email) */
+.faculty-table .table th:nth-child(1) { width: 15%; } /* Mã GV */
+.faculty-table .table th:nth-child(2) { width: 35%; } /* Họ và tên */
+.faculty-table .table th:nth-child(3) { width: 20%; } /* Khoa */
+.faculty-table .table th:nth-child(4) { width: 20%; } /* Chuyên môn */
+.faculty-table .table th:nth-child(5) { width: 10%; min-width: 120px; } /* Thao tác */
+
+/* Đảm bảo text không bị overflow */
+.faculty-table .table th,
+.faculty-table .table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Cho phép text wrap cho cột họ tên */
+.faculty-table .table th:nth-child(2),
+.faculty-table .table td:nth-child(2) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Faculty table responsive breakpoints */
+@@media (max-width: 1000px) {
+    .faculty-table .table th:nth-child(4),
+    .faculty-table .table td:nth-child(4) {
+        display: none; /* Hide Chuyên môn */
+    }
+    
+    /* Điều chỉnh lại width khi ẩn cột */
+    .faculty-table .table th:nth-child(1) { width: 20%; }
+    .faculty-table .table th:nth-child(2) { width: 45%; }
+    .faculty-table .table th:nth-child(3) { width: 25%; }
+    .faculty-table .table th:nth-child(5) { width: 10%; }
+}
+
+
+
+@@media (max-width: 768px) {
+    .faculty-table .table th:nth-child(3),
+    .faculty-table .table td:nth-child(3) {
+        display: none; /* Hide Khoa */
+    }
+    
+    /* Điều chỉnh lại width cho mobile */
+    .faculty-table .table th:nth-child(1) { width: 25%; }
+    .faculty-table .table th:nth-child(2) { width: 60%; }
+    .faculty-table .table th:nth-child(5) { width: 15%; }
+}
+
+
+
+/* Cải thiện hiển thị badges và buttons trong Faculty table */
+.faculty-table .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+}
+
+.faculty-table .btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    margin: 0.125rem;
+}
+
+/* Cải thiện hiển thị avatar và text */
+.faculty-table .user-avatar {
+    flex-shrink: 0;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.8rem;
+}
+
+/* Đảm bảo text trong cột không bị cắt */
+.faculty-table .table td:nth-child(1) {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.faculty-table .table td:nth-child(2) .fw-semibold {
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.faculty-table .table td:nth-child(2) small {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* User Management specific styles */
+.user-table .table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1000px; /* Đảm bảo có đủ không gian */
+}
+
+/* Tính toán lại width để tránh đè lên nhau */
+.user-table .table th:nth-child(1) { width: 4%; }  /* Checkbox */
+.user-table .table th:nth-child(2) { width: 22%; } /* Tên người dùng */
+.user-table .table th:nth-child(3) { width: 12%; } /* Username */
+.user-table .table th:nth-child(4) { width: 18%; } /* Email */
+.user-table .table th:nth-child(5) { width: 8%; }  /* Vai trò */
+.user-table .table th:nth-child(6) { width: 12%; } /* Ngày tạo */
+.user-table .table th:nth-child(7) { width: 8%; }  /* Trạng thái */
+.user-table .table th:nth-child(8) { width: 16%; min-width: 140px; } /* Thao tác */
+
+/* Đảm bảo text không bị overflow */
+.user-table .table th,
+.user-table .table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Cho phép text wrap cho cột tên và email */
+.user-table .table th:nth-child(2),
+.user-table .table td:nth-child(2),
+.user-table .table th:nth-child(4),
+.user-table .table td:nth-child(4) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* User table responsive breakpoints */
+@@media (max-width: 1400px) {
+    .user-table .table th:nth-child(6),
+    .user-table .table td:nth-child(6) {
+        display: none; /* Hide Ngày tạo */
+    }
+    
+    /* Điều chỉnh lại width */
+    .user-table .table th:nth-child(1) { width: 5%; }
+    .user-table .table th:nth-child(2) { width: 25%; }
+    .user-table .table th:nth-child(3) { width: 14%; }
+    .user-table .table th:nth-child(4) { width: 20%; }
+    .user-table .table th:nth-child(5) { width: 10%; }
+    .user-table .table th:nth-child(7) { width: 10%; }
+    .user-table .table th:nth-child(8) { width: 16%; }
+}
+
+@@media (max-width: 1200px) {
+    .user-table .table th:nth-child(4),
+    .user-table .table td:nth-child(4) {
+        display: none; /* Hide Email */
+    }
+    
+    /* Điều chỉnh lại width */
+    .user-table .table th:nth-child(1) { width: 6%; }
+    .user-table .table th:nth-child(2) { width: 30%; }
+    .user-table .table th:nth-child(3) { width: 18%; }
+    .user-table .table th:nth-child(5) { width: 12%; }
+    .user-table .table th:nth-child(7) { width: 12%; }
+    .user-table .table th:nth-child(8) { width: 22%; }
+}
+
+@@media (max-width: 992px) {
+    .user-table .table th:nth-child(3),
+    .user-table .table td:nth-child(3) {
+        display: none; /* Hide Username */
+    }
+    
+    /* Điều chỉnh lại width */
+    .user-table .table th:nth-child(1) { width: 8%; }
+    .user-table .table th:nth-child(2) { width: 40%; }
+    .user-table .table th:nth-child(5) { width: 15%; }
+    .user-table .table th:nth-child(7) { width: 15%; }
+    .user-table .table th:nth-child(8) { width: 22%; }
+}
+
+@@media (max-width: 768px) {
+    .user-table .table th:nth-child(5),
+    .user-table .table td:nth-child(5) {
+        display: none; /* Hide Vai trò */
+    }
+    
+    /* Điều chỉnh lại width cho mobile */
+    .user-table .table th:nth-child(1) { width: 10%; }
+    .user-table .table th:nth-child(2) { width: 50%; }
+    .user-table .table th:nth-child(7) { width: 15%; }
+    .user-table .table th:nth-child(8) { width: 25%; }
+}
+
+/* Enhanced dropdown styles */
+.action-dropdown {
+    min-width: 180px;
+    border: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 8px 0;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.action-item:hover {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    color: inherit;
+}
+
+.action-item.text-danger:hover {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: #dc2626 !important;
+}
+
+.action-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+/* Table hover effects */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* User avatar improvements */
+.user-avatar {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+/* Status badge improvements */
+.badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Compact mode for mobile */
+@@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch !important;
+    }
+    
+    .card-header .btn-group {
+        justify-content: center;
+    }
+}
+
+/* Student Management specific styles */
+.student-table .table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 800px; /* Giảm min-width do bỏ cột email */
+}
+
+/* Tính toán lại width cho 6 cột (bỏ email) */
+.student-table .table th:nth-child(1) { width: 12%; } /* Mã SV */
+.student-table .table th:nth-child(2) { width: 30%; } /* Họ và tên */
+.student-table .table th:nth-child(3) { width: 20%; } /* Chuyên ngành */
+.student-table .table th:nth-child(4) { width: 12%; } /* Khóa học */
+.student-table .table th:nth-child(5) { width: 14%; } /* Trạng thái */
+.student-table .table th:nth-child(6) { width: 12%; min-width: 120px; } /* Thao tác */
+
+/* Đảm bảo text không bị overflow */
+.student-table .table th,
+.student-table .table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Cho phép text wrap cho cột họ tên */
+.student-table .table th:nth-child(2),
+.student-table .table td:nth-child(2) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Student table responsive breakpoints */
+@@media (max-width: 1200px) {
+    .student-table .table th:nth-child(4),
+    .student-table .table td:nth-child(4) {
+        display: none; /* Hide Khóa học */
+    }
+    
+    /* Điều chỉnh lại width */
+    .student-table .table th:nth-child(1) { width: 15%; }
+    .student-table .table th:nth-child(2) { width: 40%; }
+    .student-table .table th:nth-child(3) { width: 25%; }
+    .student-table .table th:nth-child(5) { width: 15%; }
+    .student-table .table th:nth-child(6) { width: 5%; }
+}
+
+
+
+@@media (max-width: 992px) {
+    .student-table .table th:nth-child(3),
+    .student-table .table td:nth-child(3) {
+        display: none; /* Hide Chuyên ngành */
+    }
+    
+    /* Điều chỉnh lại width */
+    .student-table .table th:nth-child(1) { width: 20%; }
+    .student-table .table th:nth-child(2) { width: 45%; }
+    .student-table .table th:nth-child(5) { width: 20%; }
+    .student-table .table th:nth-child(6) { width: 15%; }
+}
+
+@@media (max-width: 768px) {
+    .student-table .table th:nth-child(5),
+    .student-table .table td:nth-child(5) {
+        display: none; /* Hide Trạng thái */
+    }
+    
+    /* Điều chỉnh lại width cho mobile */
+    .student-table .table th:nth-child(1) { width: 25%; }
+    .student-table .table th:nth-child(2) { width: 55%; }
+    .student-table .table th:nth-child(6) { width: 20%; }
+}
+
+/* Enrollment Management specific styles */
+.enrollment-table .table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1100px; /* Đảm bảo có đủ không gian */
+}
+
+/* Tính toán lại width để tránh đè lên nhau */
+.enrollment-table .table th:nth-child(1) { width: 4%; }  /* Checkbox */
+.enrollment-table .table th:nth-child(2) { width: 10%; } /* Ngày đăng ký */
+.enrollment-table .table th:nth-child(3) { width: 18%; } /* Sinh viên */
+.enrollment-table .table th:nth-child(4) { width: 18%; } /* Khóa học */
+.enrollment-table .table th:nth-child(5) { width: 14%; } /* Giảng viên */
+.enrollment-table .table th:nth-child(6) { width: 8%; }  /* Trạng thái */
+.enrollment-table .table th:nth-child(7) { width: 6%; }  /* Điểm */
+.enrollment-table .table th:nth-child(8) { width: 22%; min-width: 140px; } /* Thao tác */
+
+/* Đảm bảo text không bị overflow */
+.enrollment-table .table th,
+.enrollment-table .table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Cho phép text wrap cho cột sinh viên và khóa học */
+.enrollment-table .table th:nth-child(3),
+.enrollment-table .table td:nth-child(3),
+.enrollment-table .table th:nth-child(4),
+.enrollment-table .table td:nth-child(4) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Enrollment table responsive breakpoints */
+@@media (max-width: 1400px) {
+    .enrollment-table .table th:nth-child(7),
+    .enrollment-table .table td:nth-child(7) {
+        display: none; /* Hide Điểm */
+    }
+    
+    /* Điều chỉnh lại width */
+    .enrollment-table .table th:nth-child(1) { width: 5%; }
+    .enrollment-table .table th:nth-child(2) { width: 12%; }
+    .enrollment-table .table th:nth-child(3) { width: 20%; }
+    .enrollment-table .table th:nth-child(4) { width: 20%; }
+    .enrollment-table .table th:nth-child(5) { width: 16%; }
+    .enrollment-table .table th:nth-child(6) { width: 10%; }
+    .enrollment-table .table th:nth-child(8) { width: 17%; }
+}
+
+@@media (max-width: 1200px) {
+    .enrollment-table .table th:nth-child(5),
+    .enrollment-table .table td:nth-child(5) {
+        display: none; /* Hide Giảng viên */
+    }
+    
+    /* Điều chỉnh lại width */
+    .enrollment-table .table th:nth-child(1) { width: 6%; }
+    .enrollment-table .table th:nth-child(2) { width: 14%; }
+    .enrollment-table .table th:nth-child(3) { width: 25%; }
+    .enrollment-table .table th:nth-child(4) { width: 25%; }
+    .enrollment-table .table th:nth-child(6) { width: 12%; }
+    .enrollment-table .table th:nth-child(8) { width: 18%; }
+}
+
+@@media (max-width: 992px) {
+    .enrollment-table .table th:nth-child(2),
+    .enrollment-table .table td:nth-child(2) {
+        display: none; /* Hide Ngày đăng ký */
+    }
+    
+    /* Điều chỉnh lại width */
+    .enrollment-table .table th:nth-child(1) { width: 8%; }
+    .enrollment-table .table th:nth-child(3) { width: 30%; }
+    .enrollment-table .table th:nth-child(4) { width: 30%; }
+    .enrollment-table .table th:nth-child(6) { width: 12%; }
+    .enrollment-table .table th:nth-child(8) { width: 20%; }
+}
+
+@@media (max-width: 768px) {
+    .enrollment-table .table th:nth-child(6),
+    .enrollment-table .table td:nth-child(6) {
+        display: none; /* Hide Trạng thái */
+    }
+    
+    /* Điều chỉnh lại width cho mobile */
+    .enrollment-table .table th:nth-child(1) { width: 10%; }
+    .enrollment-table .table th:nth-child(3) { width: 40%; }
+    .enrollment-table .table th:nth-child(4) { width: 30%; }
+    .enrollment-table .table th:nth-child(8) { width: 20%; }
+}
+
+/* Course Management specific styles */
+.course-table .table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 800px; /* Giảm min-width do bỏ cột tín chỉ */
+}
+
+/* Tính toán lại width cho 6 cột (bỏ tín chỉ) */
+.course-table .table th:nth-child(1) { width: 15%; } /* Mã khóa học */
+.course-table .table th:nth-child(2) { width: 30%; } /* Tên khóa học */
+.course-table .table th:nth-child(3) { width: 25%; } /* Giảng viên */
+.course-table .table th:nth-child(4) { width: 12%; } /* Sĩ số */
+.course-table .table th:nth-child(5) { width: 12%; } /* Trạng thái */
+.course-table .table th:nth-child(6) { width: 6%; min-width: 120px; } /* Thao tác */
+
+/* Đảm bảo text không bị overflow */
+.course-table .table th,
+.course-table .table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Cho phép text wrap cho cột tên khóa học và giảng viên */
+.course-table .table th:nth-child(2),
+.course-table .table td:nth-child(2),
+.course-table .table th:nth-child(3),
+.course-table .table td:nth-child(3) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Course table responsive breakpoints */
+@@media (max-width: 1200px) {
+    .course-table .table th:nth-child(4),
+    .course-table .table td:nth-child(4) {
+        display: none; /* Hide Sĩ số */
+    }
+    
+    /* Điều chỉnh lại width */
+    .course-table .table th:nth-child(1) { width: 18%; }
+    .course-table .table th:nth-child(2) { width: 35%; }
+    .course-table .table th:nth-child(3) { width: 30%; }
+    .course-table .table th:nth-child(5) { width: 12%; }
+    .course-table .table th:nth-child(6) { width: 5%; }
+}
+
+
+
+@@media (max-width: 992px) {
+    .course-table .table th:nth-child(3),
+    .course-table .table td:nth-child(3) {
+        display: none; /* Hide Giảng viên */
+    }
+    
+    /* Điều chỉnh lại width */
+    .course-table .table th:nth-child(1) { width: 25%; }
+    .course-table .table th:nth-child(2) { width: 50%; }
+    .course-table .table th:nth-child(5) { width: 15%; }
+    .course-table .table th:nth-child(6) { width: 10%; }
+}
+
+@@media (max-width: 768px) {
+    .course-table .table th:nth-child(5),
+    .course-table .table td:nth-child(5) {
+        display: none; /* Hide Trạng thái */
+    }
+    
+    /* Điều chỉnh lại width cho mobile */
+    .course-table .table th:nth-child(1) { width: 30%; }
+    .course-table .table th:nth-child(2) { width: 55%; }
+    .course-table .table th:nth-child(6) { width: 15%; }
+}
+
+/* Cải thiện hiển thị chung cho tất cả các bảng */
+.table-responsive .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+}
+
+.table-responsive .btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    margin: 0.125rem;
+}
+
+.table-responsive .user-avatar {
+    flex-shrink: 0;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.8rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+}
+
+/* Cải thiện hiển thị text trong các cột */
+.table td:first-child {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.table .fw-semibold {
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.table small {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Đảm bảo action buttons luôn hiển thị đúng */
+.table .action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.table .quick-actions {
+    display: flex;
+    gap: 0.125rem;
+}
+</style>

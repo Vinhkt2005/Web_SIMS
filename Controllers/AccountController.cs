@@ -2,24 +2,20 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Security.Claims;
-using Web_SIMS.Data;
-using Web_SIMS.Helpers;
-using Web_SIMS.Models;
+using Web_SIMS.Interfaces.Services;
 using Web_SIMS.ViewModels;
+using AuthService = Web_SIMS.Interfaces.Services.IAuthenticationService;
 
 namespace Web_SIMS.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly AuthService _authenticationService;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(AppDbContext context, ILogger<AccountController> logger)
+        public AccountController(AuthService authenticationService, ILogger<AccountController> logger)
         {
-            _context = context;
+            _authenticationService = authenticationService;
             _logger = logger;
         }
 
@@ -54,181 +50,85 @@ namespace Web_SIMS.Controllers
                     return View(model);
                 }
 
-                // Tìm kiếm người dùng theo tên đăng nhập
-                _logger.LogInformation($"Đang tìm kiếm user: {model.Username}");
-                var user = await _context.Users
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Username == model.Username && u.IsActive);
+                // Check if account is locked
+                if (await _authenticationService.IsAccountLockedAsync(model.Username))
+                {
+                    ModelState.AddModelError("", "Tài khoản đã bị khóa tạm thời. Vui lòng thử lại sau.");
+                    return View(model);
+                }
 
+                // Validate user credentials
+                var user = await _authenticationService.ValidateUserAsync(model.Username, model.Password);
                 if (user == null)
                 {
-                    _logger.LogWarning($"Không tìm thấy user: {model.Username}");
-                    ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
+                    ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
+                    
+                    // Consider implementing account lockout after multiple failed attempts
+                    // await _authenticationService.LockAccountAsync(model.Username, TimeSpan.FromMinutes(15));
+                    
                     return View(model);
                 }
 
-                _logger.LogInformation($"Tìm thấy user: {user.Username}, Role: {user.Role?.RoleName}, IsActive: {user.IsActive}");
+                // Create claims principal and sign in
+                var claimsPrincipal = await _authenticationService.CreateClaimsPrincipalAsync(user);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
 
-                // Kiểm tra mật khẩu đã hash hoặc plain text (để tương thích với dữ liệu cũ)
-                _logger.LogInformation($"Kiểm tra password cho user: {user.Username}");
-                _logger.LogInformation($"Input password: {model.Password}");
-                _logger.LogInformation($"Stored password: {user.Password}");
-                _logger.LogInformation($"PasswordSalt: {user.PasswordSalt}");
-                
-                bool isPasswordValid = false;
-                if (!string.IsNullOrEmpty(user.PasswordSalt))
-                {
-                    // Sử dụng hash + salt
-                    isPasswordValid = PasswordHelper.VerifyPassword(model.Password, user.Password, user.PasswordSalt);
-                    _logger.LogInformation($"Using hash verification: {isPasswordValid}");
-                }
-                else
-                {
-                    // Fallback cho dữ liệu cũ (plain text)
-                    isPasswordValid = user.Password == model.Password;
-                    _logger.LogInformation($"Using plain text comparison: {isPasswordValid}");
-                }
+                _logger.LogInformation("User {Username} logged in successfully", model.Username);
 
-                if (!isPasswordValid)
-                {
-                    _logger.LogWarning($"Password không đúng cho user: {model.Username}");
-                    ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
-                    return View(model);
-                }
-
-                _logger.LogInformation($"Người dùng {model.Username} đăng nhập thành công.");
-
-                // Tạo danh sách claims
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                    new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "NoRole"),
-                    new Claim("FullName", user.FullName ?? string.Empty)
-                };
-
-                // Tạo identity và principal
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-                // Cấu hình đăng nhập
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = model.RememberMe,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
-                };
-
-                // Đăng nhập người dùng
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    claimsPrincipal,
-                    authProperties);
-
-                // Chuyển hướng đến trang yêu cầu hoặc trang chủ tương ứng với role
+                // Redirect to return URL or default page
                 if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 {
                     return Redirect(model.ReturnUrl);
                 }
-                
-                // Redirect theo role
+
+                // Redirect based on user role
                 if (user.Role?.RoleName == "Admin")
                 {
                     return RedirectToAction("Index", "Dashboard");
-                }
-                else if (user.Role?.RoleName == "Faculty")
-                {
-                    return RedirectToAction("Home", "Faculty");
                 }
                 else if (user.Role?.RoleName == "Student")
                 {
                     return RedirectToAction("Home", "StudentPortal");
                 }
-                else
+                else if (user.Role?.RoleName == "Faculty")
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Home", "Faculty");
                 }
+
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi trong quá trình đăng nhập");
-                ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Error occurred during login for username: {Username}", model?.Username);
+                ModelState.AddModelError("", "Có lỗi xảy ra trong quá trình đăng nhập. Vui lòng thử lại.");
                 return View(model);
             }
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpGet]
-        [Authorize]
-        public IActionResult ChangePassword()
-        {
-            return View(new ChangePasswordViewModel());
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
             try
             {
-                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                var user = await _context.Users.FindAsync(userId);
-
-                if (user == null)
-                {
-                    ModelState.AddModelError(string.Empty, "Không tìm thấy thông tin người dùng.");
-                    return View(model);
-                }
-
-                // Kiểm tra mật khẩu hiện tại
-                bool isCurrentPasswordValid = false;
-                if (!string.IsNullOrEmpty(user.PasswordSalt))
-                {
-                    isCurrentPasswordValid = PasswordHelper.VerifyPassword(model.CurrentPassword, user.Password, user.PasswordSalt);
-                }
-                else
-                {
-                    isCurrentPasswordValid = user.Password == model.CurrentPassword;
-                }
-
-                if (!isCurrentPasswordValid)
-                {
-                    ModelState.AddModelError("CurrentPassword", "Mật khẩu hiện tại không đúng.");
-                    return View(model);
-                }
-
-                // Hash mật khẩu mới
-                var (hashedPassword, salt) = PasswordHelper.HashPasswordWithSalt(model.NewPassword);
-                user.Password = hashedPassword;
-                user.PasswordSalt = salt;
-                user.UpdatedDate = DateTime.Now;
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Người dùng {user.Username} đã đổi mật khẩu thành công.");
-                TempData["SuccessMessage"] = "Mật khẩu đã được thay đổi thành công.";
-
-                return RedirectToAction("Index", "Dashboard");
+                var username = User.Identity?.Name;
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                
+                _logger.LogInformation("User {Username} logged out successfully", username);
+                return RedirectToAction("Login");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi đổi mật khẩu");
-                ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi khi đổi mật khẩu. Vui lòng thử lại sau.");
-                return View(model);
+                _logger.LogError(ex, "Error occurred during logout");
+                return RedirectToAction("Login");
             }
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
 
         [HttpGet]
@@ -241,43 +141,78 @@ namespace Web_SIMS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email && u.IsActive);
-
-                if (user == null)
+                if (!ModelState.IsValid)
                 {
-                    // Không hiển thị lỗi để tránh lộ thông tin
-                    TempData["SuccessMessage"] = "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.";
-                    return RedirectToAction("Login");
+                    return View(model);
                 }
 
-                // Tạo token reset password (đơn giản - trong thực tế nên dùng JWT)
-                var resetToken = Guid.NewGuid().ToString();
-                // Lưu token vào database hoặc cache (đơn giản hóa)
+                var user = await _authenticationService.GetUserByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    // Don't reveal that the user does not exist
+                    ViewBag.Message = "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.";
+                    return View("ForgotPasswordConfirmation");
+                }
 
-                // Gửi email (đơn giản hóa - trong thực tế nên dùng email service)
-                _logger.LogInformation($"Reset password token cho {user.Email}: {resetToken}");
-
-                TempData["SuccessMessage"] = "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.";
-                return RedirectToAction("Login");
+                // In a real application, you would send an email with a reset token
+                // For now, we'll just show a confirmation message
+                ViewBag.Message = "Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn.";
+                return View("ForgotPasswordConfirmation");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi xử lý quên mật khẩu");
-                ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi. Vui lòng thử lại sau.");
+                _logger.LogError(ex, "Error occurred during forgot password for email: {Email}", model?.Email);
+                ModelState.AddModelError("", "Có lỗi xảy ra. Vui lòng thử lại.");
                 return View(model);
             }
         }
 
-        public IActionResult AccessDenied()
+        [HttpGet]
+        [Authorize]
+        public IActionResult ChangePassword()
         {
-            return View();
+            return View(new ChangePasswordViewModel());
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    ModelState.AddModelError("", "Không thể xác định người dùng.");
+                    return View(model);
+                }
+
+                var success = await _authenticationService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Đổi mật khẩu thành công.";
+                    return RedirectToAction("ChangePassword");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Mật khẩu hiện tại không đúng.");
+                    return View(model);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during password change for user");
+                ModelState.AddModelError("", "Có lỗi xảy ra khi đổi mật khẩu.");
+                return View(model);
+            }
         }
     }
 }

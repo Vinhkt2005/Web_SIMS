@@ -67,8 +67,8 @@ namespace Web_SIMS.Models
         public DateTime? UpdatedDate { get; set; }
 
         // Navigation Properties
-        public virtual ICollection<Enrollment>? Enrollments { get; set; }
-        public virtual ICollection<AcademicRecord>? AcademicRecords { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+        public virtual ICollection<AcademicRecord> AcademicRecords { get; set; } = new List<AcademicRecord>();
         public virtual User? User { get; set; }
     }
 }

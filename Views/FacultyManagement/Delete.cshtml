@@ -1,0 +1,231 @@
+@model Web_SIMS.Models.Faculty
+
+@{
+    ViewData["Title"] = "Xóa Giảng viên";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Xác nhận xóa Giảng viên
+                    </h3>
+                    <div class="card-tools">
+                        <a asp-action="Index" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa giảng viên này không?
+                        <br>
+                        <small>Thao tác này sẽ đánh dấu giảng viên là "không hoạt động" và không thể hoàn tác.</small>
+                    </div>
+
+                    <div class="row">
+                        <!-- Thông tin giảng viên -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">
+                                <i class="fas fa-user"></i> Thông tin Giảng viên
+                            </h5>
+
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="font-weight-bold" style="width: 40%;">
+                                        <i class="fas fa-id-card text-primary"></i> Mã giảng viên:
+                                    </td>
+                                    <td>@Html.DisplayFor(model => model.FacultyCode)</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <i class="fas fa-user text-success"></i> Họ và tên:
+                                    </td>
+                                    <td>@Html.DisplayFor(model => model.FullName)</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <i class="fas fa-envelope text-info"></i> Email:
+                                    </td>
+                                    <td>@Html.DisplayFor(model => model.Email)</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <i class="fas fa-building text-warning"></i> Khoa:
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.Department))
+                                        {
+                                            @Html.DisplayFor(model => model.Department)
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <i class="fas fa-microscope text-secondary"></i> Chuyên môn:
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.Specialization))
+                                        {
+                                            @Html.DisplayFor(model => model.Specialization)
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Thông tin tài khoản và ảnh hưởng -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">
+                                <i class="fas fa-info-circle"></i> Thông tin liên quan
+                            </h5>
+
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="font-weight-bold" style="width: 40%;">
+                                        <i class="fas fa-user-circle text-primary"></i> Tài khoản:
+                                    </td>
+                                    <td>
+                                        @if (Model.User != null)
+                                        {
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-user"></i> @Model.User.Username
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">Tài khoản sẽ bị vô hiệu hóa</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-times"></i> Không có tài khoản
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <i class="fas fa-book text-success"></i> Môn học:
+                                    </td>
+                                    <td>
+                                        @if (Model.Courses != null && Model.Courses.Any(c => c.IsActive))
+                                        {
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-book"></i> @Model.Courses.Count(c => c.IsActive) môn học
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">Cần chuyển giao cho giảng viên khác</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-times"></i> Không có môn học
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <i class="fas fa-clock text-info"></i> Ngày tạo:
+                                    </td>
+                                    <td>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                                @if (Model.UpdatedDate.HasValue)
+                                {
+                                    <tr>
+                                        <td class="font-weight-bold">
+                                            <i class="fas fa-edit text-warning"></i> Cập nhật cuối:
+                                        </td>
+                                        <td>@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                    </tr>
+                                }
+                            </table>
+
+                            @if (Model.Courses != null && Model.Courses.Any(c => c.IsActive))
+                            {
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Lưu ý:</strong> Giảng viên này đang giảng dạy 
+                                    @Model.Courses.Count(c => c.IsActive) môn học. 
+                                    Hãy đảm bảo chuyển giao các môn học này cho giảng viên khác trước khi xóa.
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Danh sách môn học đang giảng dạy -->
+                    @if (Model.Courses != null && Model.Courses.Any(c => c.IsActive))
+                    {
+                        <hr class="my-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-book text-warning"></i> Môn học đang giảng dạy
+                        </h5>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Mã môn học</th>
+                                        <th>Tên môn học</th>
+                                        <th>Tín chỉ</th>
+                                        <th>Học kỳ</th>
+                                        <th>Năm học</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var course in Model.Courses.Where(c => c.IsActive))
+                                    {
+                                        <tr>
+                                            <td>@course.CourseCode</td>
+                                            <td>@course.CourseName</td>
+                                            <td>@course.Credits</td>
+                                            <td>@course.Semester</td>
+                                            <td>@course.AcademicYear</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer">
+                    <form asp-action="DeleteConfirmed" asp-route-id="@Model.FacultyId" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-danger" 
+                                        onclick="return confirm('Bạn có chắc chắn muốn xóa giảng viên @Model.FullName không?')">
+                                    <i class="fas fa-trash"></i> Xác nhận xóa
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary ml-2">
+                                    <i class="fas fa-times"></i> Hủy
+                                </a>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <a asp-action="Details" asp-route-id="@Model.FacultyId" class="btn btn-info">
+                                    <i class="fas fa-eye"></i> Xem chi tiết
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@Model.FacultyId" class="btn btn-warning ml-2">
+                                    <i class="fas fa-edit"></i> Sửa thay vì xóa
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

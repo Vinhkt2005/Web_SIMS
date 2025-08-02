@@ -46,8 +46,12 @@ namespace Web_SIMS.Models
         [Display(Name = "Sinh viên")]
         public int? StudentId { get; set; }
 
+        [Display(Name = "Giảng viên")]
+        public int? FacultyId { get; set; }
+
         // Navigation Properties
         public virtual Role? Role { get; set; }
         public virtual Student? Student { get; set; }
+        public virtual Faculty? Faculty { get; set; }
     }
 }

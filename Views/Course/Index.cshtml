@@ -2,176 +2,1297 @@
 
 @{
     ViewData["Title"] = "Quản lý Khóa học";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-book me-2"></i>Quản lý Khóa học
-            </h1>
-            <p class="text-muted">Danh sách khóa học trong hệ thống</p>
-        </div>
-        <div>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Thêm khóa học mới
-            </a>
+@section Styles {
+    <!-- CSS riêng cho trang quản lý khóa học -->
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">Quản lý Khóa học</li>
+            </ol>
+        </nav>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-book-plus me-2"></i>Thêm Khóa học
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3 class="stats-number">@Model.Count()</h3>
+            <p class="stats-label">Tổng Khóa học</p>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-play-circle"></i>
+            </div>
+            <h3 class="stats-number">@Model.Count(c => c.IsActive)</h3>
+            <p class="stats-label">Đang Mở</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="stats-number">@Model.Sum(c => c.MaxStudents)</h3>
+            <p class="stats-label">Tổng Chỗ</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h3 class="stats-number">@Model.Where(c => c.Faculty?.FullName != null).GroupBy(c => c.Faculty!.FullName).Count()</h3>
+            <p class="stats-label">Giảng viên</p>
+        </div>
+    </div>
+</div>
 
-    <!-- Search and Filter -->
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <form asp-action="Index" method="get" class="row g-3">
+<!-- Main Content Card -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Danh sách Khóa học
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportCourses()">
+                    <i class="fas fa-file-excel me-1"></i>Xuất Excel
+                </button>
+                <button class="btn btn-outline-info btn-sm" onclick="printCourses()">
+                    <i class="fas fa-print me-1"></i>In danh sách
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Search and Filter -->
+        <form asp-action="Index" method="get" class="mb-4">
+            <div class="row g-3">
                 <div class="col-md-6">
                     <div class="input-group">
-                        <input type="text" class="form-control" name="searchString" value="@ViewData["CurrentFilter"]" placeholder="Tìm kiếm theo tên, mã khóa học, giảng viên...">
-                        <button class="btn btn-outline-secondary" type="submit">
+                        <span class="input-group-text">
                             <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" 
+                               class="form-control" placeholder="Tìm kiếm theo tên, mã khóa học, giảng viên...">
+                        <button class="btn btn-primary" type="submit">
+                            Tìm kiếm
                         </button>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <a asp-action="Index" class="btn btn-outline-secondary">
-                        <i class="fas fa-refresh me-2"></i>Làm mới
-                    </a>
+                    <select name="StatusFilter" class="form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active" selected="@(ViewData["StatusFilter"]?.ToString() == "active")">Đang mở</option>
+                        <option value="inactive" selected="@(ViewData["StatusFilter"]?.ToString() == "inactive")">Đã đóng</option>
+                    </select>
                 </div>
-            </form>
-        </div>
-    </div>
+                <div class="col-md-3">
+                    @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"] as string))
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times me-1"></i>Xóa bộ lọc
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
 
-    <!-- Courses Table -->
-    <div class="card shadow">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-list me-2"></i>Danh sách khóa học (@Model.TotalCount)
-            </h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+        <!-- Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Courses Table -->
+        <div class="table-responsive course-table">
+            <table class="table table-hover table-fixed-layout">
+                <thead class="table-header-enhanced">
+                    <tr>
+                        <th class="text-center align-middle">
+                            <a asp-action="Index" asp-route-sortOrder="@ViewData["CodeSortParm"]" 
+                               asp-route-currentFilter="@ViewData["CurrentFilter"]" class="text-decoration-none d-flex align-items-center justify-content-center">
+                                <i class="fas fa-hashtag me-2"></i>
+                                <span class="fw-semibold">Mã khóa học</span>
+                                @if (ViewData["CurrentSort"]?.ToString() == "Code")
+                                {
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                }
+                                else if (ViewData["CurrentSort"]?.ToString() == "code_desc")
+                                {
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="text-center align-middle">
+                            <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" 
+                               asp-route-currentFilter="@ViewData["CurrentFilter"]" class="text-decoration-none d-flex align-items-center justify-content-center">
+                                <i class="fas fa-book me-2"></i>
+                                <span class="fw-semibold">Tên khóa học</span>
+                                @if (ViewData["CurrentSort"]?.ToString() == "")
+                                {
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                }
+                                else if (ViewData["CurrentSort"]?.ToString() == "name_desc")
+                                {
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="text-center align-middle">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>
+                                <span class="fw-semibold">Giảng viên</span>
+                            </div>
+                        </th>
+                        <th class="text-center align-middle">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fas fa-users me-2"></i>
+                                <span class="fw-semibold">Sĩ số</span>
+                            </div>
+                        </th>
+                        <th class="text-center align-middle">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fas fa-toggle-on me-2"></i>
+                                <span class="fw-semibold">Trạng thái</span>
+                            </div>
+                        </th>
+                        <th class="text-center align-middle">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fas fa-cogs me-2"></i>
+                                <span class="fw-semibold">Thao tác</span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
                         <tr>
-                            <th>
-                                <a asp-action="Index" asp-route-sortOrder="@ViewData["CodeSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                    Mã khóa học
-                                    @if (ViewData["CurrentSort"]?.ToString() == "Code")
-                                    {
-                                        <i class="fas fa-sort-up"></i>
-                                    }
-                                    else if (ViewData["CurrentSort"]?.ToString() == "code_desc")
-                                    {
-                                        <i class="fas fa-sort-down"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="fas fa-sort"></i>
-                                    }
-                                </a>
-                            </th>
-                            <th>
-                                <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                    Tên khóa học
-                                    @if (ViewData["CurrentSort"]?.ToString() == "name_desc")
-                                    {
-                                        <i class="fas fa-sort-down"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="fas fa-sort-up"></i>
-                                    }
-                                </a>
-                            </th>
-                            <th>Tín chỉ</th>
-                            <th>Giảng viên</th>
-                            <th>Số SV tối đa</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>@item.CourseCode</strong>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-3">
-                                            <i class="fas fa-book fa-2x text-success"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold">@item.CourseName</div>
-                                            <small class="text-muted">@item.Semester - @item.AcademicYear</small>
+                            <td class="text-center align-middle">
+                                <span class="fw-semibold text-primary">@item.CourseCode</span>
+                            </td>
+                            <td class="align-middle">
+                                <div class="text-center">
+                                    <div class="fw-semibold">@item.CourseName</div>
+                                    <small class="text-muted">@item.Credits tín chỉ</small>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                @if (item.Faculty != null && !string.IsNullOrEmpty(item.Faculty.FullName))
+                                {
+                                    <div class="text-center">
+                                        <div class="fw-semibold">@item.Faculty.FullName</div>
+                                        <small class="text-muted">@item.Faculty.FacultyCode</small>
+                                    </div>
+                                }
+                                else if (!string.IsNullOrEmpty(item.Instructor))
+                                {
+                                    <div class="text-center">
+                                        <div class="fw-semibold">@item.Instructor</div>
+                                        <small class="text-muted">Giảng viên</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center">
+                                        <span class="text-muted">Chưa phân công</span>
+                                    </div>
+                                }
+                            </td>
+                            <td class="text-center align-middle">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="progress me-2" style="width: 60px; height: 8px;">
+                                        @{
+                                            var enrollmentRate = item.MaxStudents > 0 ? (item.Enrollments?.Count ?? 0) * 100.0 / item.MaxStudents : 0;
+                                        }
+                                        <div class="progress-bar" 
+                                             style="width: @(enrollmentRate)%; background: linear-gradient(90deg, var(--success-color), var(--warning-color));"
+                                             role="progressbar">
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">@item.Credits tín chỉ</span>
-                                </td>
-                                <td>@item.Instructor</td>
-                                <td>
-                                    <span class="badge bg-warning">@item.MaxStudents SV</span>
-                                </td>
-                                <td>
-                                    @if (item.IsActive)
-                                    {
-                                        <span class="badge bg-success">Hoạt động</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Không hoạt động</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a asp-action="Details" asp-route-id="@item.CourseId" class="btn btn-sm btn-outline-info">
+                                    <small class="fw-semibold">@(item.Enrollments?.Count ?? 0)/@item.MaxStudents</small>
+                                </div>
+                            </td>
+                            <td class="text-center align-middle">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-play me-1"></i>Đang mở
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-pause me-1"></i>Đã đóng
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center align-middle">
+                                <div class="action-buttons">
+                                    <div class="dropdown">
+                                        <button class="btn btn-action btn-action-primary dropdown-toggle" type="button" 
+                                                data-bs-toggle="dropdown" aria-expanded="false" title="Thao tác">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end action-dropdown">
+                                            <li>
+                                                <a class="dropdown-item action-item" asp-action="Details" asp-route-id="@item.CourseId">
+                                                    <i class="fas fa-eye action-icon text-info"></i>
+                                                    <span>Xem chi tiết</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item action-item" asp-action="Edit" asp-route-id="@item.CourseId">
+                                                    <i class="fas fa-edit action-icon text-warning"></i>
+                                                    <span>Chỉnh sửa</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item action-item" asp-action="Enrollments" asp-route-id="@item.CourseId">
+                                                    <i class="fas fa-users action-icon text-primary"></i>
+                                                    <span>Danh sách sinh viên</span>
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item action-item text-danger" 
+                                                        onclick="confirmDelete(@item.CourseId, '@item.CourseName')">
+                                                    <i class="fas fa-trash action-icon text-danger"></i>
+                                                    <span>Xóa khóa học</span>
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- Quick Actions (visible on hover) -->
+                                    <div class="quick-actions">
+                                        <a asp-action="Details" asp-route-id="@item.CourseId" 
+                                           class="btn btn-action btn-action-info" title="Xem chi tiết">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn btn-sm btn-outline-warning">
+                                        <a asp-action="Edit" asp-route-id="@item.CourseId" 
+                                           class="btn btn-action btn-action-warning" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a asp-action="Delete" asp-route-id="@item.CourseId" class="btn btn-sm btn-outline-danger">
-                                            <i class="fas fa-trash"></i>
+                                        <a asp-action="Enrollments" asp-route-id="@item.CourseId" 
+                                           class="btn btn-action btn-action-primary" title="Danh sách sinh viên">
+                                            <i class="fas fa-users"></i>
                                         </a>
+                                        <button type="button" class="btn btn-action btn-action-danger" 
+                                                onclick="confirmDelete(@item.CourseId, '@item.CourseName')" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-            <!-- Pagination -->
-            @{
-                var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-                var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-            }
-
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item @prevDisabled">
-                        <a class="page-link" asp-action="Index" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-pageNumber="@(Model.PageIndex - 1)">
+        <!-- Pagination -->
+        @if (Model.HasPreviousPage || Model.HasNextPage)
+        {
+            <nav aria-label="Phân trang">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                           asp-route-pageNumber="@(Model.PageIndex - 1)"
+                           asp-route-currentFilter="@ViewData["CurrentFilter"]">
                             <i class="fas fa-chevron-left"></i> Trước
                         </a>
                     </li>
-
-                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    
+                    @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
                     {
-                        var pageClass = i == Model.PageIndex ? "active" : "";
-                        <li class="page-item @pageClass">
-                            <a class="page-link" asp-action="Index" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-pageNumber="@i">@i</a>
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-sortOrder="@ViewData["CurrentSort"]"
+                               asp-route-pageNumber="@i"
+                               asp-route-currentFilter="@ViewData["CurrentFilter"]">@i</a>
                         </li>
                     }
-
-                    <li class="page-item @nextDisabled">
-                        <a class="page-link" asp-action="Index" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-pageNumber="@(Model.PageIndex + 1)">
+                    
+                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                           asp-route-pageNumber="@(Model.PageIndex + 1)"
+                           asp-route-currentFilter="@ViewData["CurrentFilter"]">
                             Sau <i class="fas fa-chevron-right"></i>
                         </a>
                     </li>
                 </ul>
             </nav>
-        </div>
+        }
     </div>
 </div>
+
+<script>
+function exportCourses() {
+    const btn = event.target.closest('button');
+    btn.classList.add('loading');
+    
+    setTimeout(() => {
+        btn.classList.remove('loading');
+        alert('Xuất dữ liệu khóa học thành công!');
+    }, 2000);
+}
+
+function printCourses() {
+    window.print();
+}
+
+function confirmDelete(id, name) {
+    // Enhanced confirmation dialog
+    const result = confirm(`🗑️ XÓA HOÀN TOÀN KHÓA HỌC\n\nBạn có chắc chắn muốn XÓA HOÀN TOÀN khóa học "${name}"?\n\n⚠️ CẢNH BÁO:\n- Dữ liệu sẽ bị XÓA VĨNH VIỄN khỏi database\n- Thao tác này KHÔNG THỂ HOÀN TÁC!\n\nChỉ tiếp tục nếu bạn hoàn toàn chắc chắn!`);
+    
+    if (result) {
+        // Show loading state
+        const deleteButtons = document.querySelectorAll(`[onclick*="${id}"]`);
+        deleteButtons.forEach(btn => {
+            if (btn.innerHTML.includes('trash')) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+        });
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/courses/delete/${id}`;
+        
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            form.appendChild(token.cloneNode());
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+<style>
+    /* ===== CSS RIÊNG CHO TRANG QUẢN LÝ KHÓA HỌC ===== */
+    .action-buttons {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-width: 160px;
+        padding: 0.5rem;
+    }
+    
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-action::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-action:hover::before {
+        left: 100%;
+    }
+    
+    .btn-action-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-action-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .btn-action-info {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        color: white;
+        box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+    }
+    
+    .btn-action-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        color: white;
+    }
+    
+    .btn-action-warning {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-action-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        color: white;
+    }
+    
+    .btn-action-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-action-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        color: white;
+    }
+    
+    /* Quick Actions - Hidden by default, shown on row hover */
+    .quick-actions {
+        display: none;
+        gap: 6px;
+        animation: slideInRight 0.3s ease;
+        flex-wrap: nowrap;
+    }
+    
+    .action-buttons:hover .quick-actions {
+        display: flex;
+    }
+    
+    .action-buttons:hover .dropdown {
+        display: none;
+    }
+    
+    /* Ensure action buttons don't wrap */
+    .action-buttons .quick-actions {
+        white-space: nowrap;
+    }
+    
+    /* Dropdown Styles */
+    .action-dropdown {
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        padding: 8px 0;
+        min-width: 180px;
+        background: white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .action-item {
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s ease;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+    
+    .action-item:hover {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        transform: translateX(5px);
+    }
+    
+    .action-item.text-danger:hover {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        color: #dc2626 !important;
+    }
+    
+    .action-icon {
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+    
+    /* Row hover effect */
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Animations */
+    @@keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Tooltip enhancement */
+    .btn-action[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 5px;
+    }
+    
+    .btn-action[title]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+    }
+    
+    /* Table Column Width Optimization */
+    .table-fixed-layout {
+        table-layout: fixed;
+        width: 100%;
+    }
+    
+    /* Specific column widths for better layout */
+    .table-fixed-layout th:nth-child(1), /* Mã khóa học */
+    .table-fixed-layout td:nth-child(1) {
+        width: 10%;
+        min-width: 90px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table-fixed-layout th:nth-child(2), /* Tên khóa học */
+    .table-fixed-layout td:nth-child(2) {
+        width: 22%;
+        min-width: 180px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table-fixed-layout th:nth-child(3), /* Giảng viên */
+    .table-fixed-layout td:nth-child(3) {
+        width: 22%;
+        min-width: 170px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table-fixed-layout th:nth-child(4), /* Sĩ số */
+    .table-fixed-layout td:nth-child(4) {
+        width: 12%;
+        min-width: 90px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table-fixed-layout th:nth-child(5), /* Trạng thái */
+    .table-fixed-layout td:nth-child(5) {
+        width: 12%;
+        min-width: 90px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .table-fixed-layout th:nth-child(6), /* Thao tác */
+    .table-fixed-layout td:nth-child(6) {
+        width: 22%;
+        min-width: 180px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    /* Enhanced table styling */
+    .table-fixed-layout td {
+        padding: 1rem 0.75rem;
+        position: relative;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .table-fixed-layout th {
+        padding: 1.25rem 0.75rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* Allow text wrapping for course name column */
+    .table-fixed-layout td:nth-child(2) {
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.4;
+        padding: 1.25rem 0.75rem;
+    }
+    
+    /* Allow text wrapping for instructor column */
+    .table-fixed-layout td:nth-child(3) {
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.4;
+    }
+    
+    /* Enhanced row styling */
+    .table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Tooltip for truncated text */
+    .table-fixed-layout td[title] {
+        cursor: help;
+    }
+    
+    .table-fixed-layout td:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 5px;
+        opacity: 0;
+        animation: fadeIn 0.3s ease forwards;
+    }
+    
+    @@keyframes fadeIn {
+        to { opacity: 1; }
+    }
+    
+    /* Responsive table improvements */
+    .table-responsive {
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+        max-width: 100%;
+    }
+    
+    /* Ensure minimum table width */
+    .table-fixed-layout {
+        min-width: 1000px;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Enhanced table container */
+    .table-responsive {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        background: white;
+        border: 1px solid #e5e7eb;
+    }
+    
+
+    
+    /* Progress bar enhancements */
+    .progress {
+        background-color: #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-bar {
+        border-radius: 0.5rem;
+        transition: width 0.3s ease;
+    }
+    
+    /* Badge enhancements */
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Mobile responsive */
+    @@media (max-width: 1200px) {
+        .table-fixed-layout {
+            min-width: 950px;
+        }
+        
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 24%;
+            min-width: 160px;
+        }
+        
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            width: 20%;
+            min-width: 150px;
+        }
+        
+        .table-fixed-layout th:nth-child(4),
+        .table-fixed-layout td:nth-child(4) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 20%;
+            min-width: 150px;
+        }
+    }
+    
+    @@media (max-width: 992px) {
+        .table-fixed-layout {
+            min-width: 700px;
+        }
+        
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 15%;
+            min-width: 90px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 25%;
+            min-width: 150px;
+        }
+        
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            width: 20%;
+            min-width: 140px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 18%;
+            min-width: 130px;
+        }
+    }
+    
+    /* Desktop - hiển thị quick actions */
+    @@media (min-width: 769px) {
+        .quick-actions {
+            display: flex !important;
+        }
+        
+        .action-buttons .dropdown {
+            display: none !important;
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .table-fixed-layout {
+            min-width: 600px;
+        }
+        
+        /* Hide less important columns on mobile */
+        .table-fixed-layout th:nth-child(4),
+        .table-fixed-layout td:nth-child(4) {
+            display: none;
+        }
+        
+        /* Adjust remaining columns */
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 18%;
+            min-width: 80px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 35%;
+            min-width: 140px;
+        }
+        
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            width: 25%;
+            min-width: 120px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 12%;
+            min-width: 80px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 10%;
+            min-width: 80px;
+        }
+        
+        .action-buttons {
+            min-width: auto;
+        }
+        
+        .quick-actions {
+            display: none !important;
+        }
+        
+        .action-buttons .dropdown {
+            display: block !important;
+        }
+        
+        .btn-action {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .table-fixed-layout {
+            min-width: 500px;
+        }
+        
+        /* Hide instructor column on very small screens */
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            display: none;
+        }
+        
+        /* Adjust remaining columns */
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 25%;
+            min-width: 80px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 45%;
+            min-width: 120px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 15%;
+            min-width: 70px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 15%;
+            min-width: 70px;
+        }
+    }
+    
+    /* ===== CSS RIÊNG CHO TRANG QUẢN LÝ KHÓA HỌC ===== */
+    
+    /* Cơ bản cho bảng */
+    .table-responsive {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        background: white;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .table-fixed-layout {
+        table-layout: fixed;
+        width: 100%;
+        min-width: 1000px;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 0;
+    }
+    
+    /* Header bảng */
+    .table-header-enhanced th {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        padding: 1.25rem 0.75rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    /* Các ô trong bảng */
+    .table-fixed-layout td {
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    /* Tỷ lệ cột tối ưu */
+    .table-fixed-layout th:nth-child(1), /* Mã khóa học */
+    .table-fixed-layout td:nth-child(1) {
+        width: 10%;
+        min-width: 90px;
+    }
+    
+    .table-fixed-layout th:nth-child(2), /* Tên khóa học */
+    .table-fixed-layout td:nth-child(2) {
+        width: 22%;
+        min-width: 180px;
+    }
+    
+    .table-fixed-layout th:nth-child(3), /* Giảng viên */
+    .table-fixed-layout td:nth-child(3) {
+        width: 22%;
+        min-width: 170px;
+    }
+    
+    .table-fixed-layout th:nth-child(4), /* Sĩ số */
+    .table-fixed-layout td:nth-child(4) {
+        width: 12%;
+        min-width: 90px;
+    }
+    
+    .table-fixed-layout th:nth-child(5), /* Trạng thái */
+    .table-fixed-layout td:nth-child(5) {
+        width: 12%;
+        min-width: 90px;
+    }
+    
+    .table-fixed-layout th:nth-child(6), /* Thao tác */
+    .table-fixed-layout td:nth-child(6) {
+        width: 22%;
+        min-width: 180px;
+    }
+    
+    /* Cho phép text wrap cho cột tên khóa học và giảng viên */
+    .table-fixed-layout td:nth-child(2),
+    .table-fixed-layout td:nth-child(3) {
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.4;
+    }
+    
+    /* Hover effect cho hàng */
+    .table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+
+    
+    /* Progress bar enhancements */
+    .progress {
+        background-color: #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-bar {
+        border-radius: 0.5rem;
+        transition: width 0.3s ease;
+    }
+    
+    /* Badge enhancements */
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* ===== RESPONSIVE DESIGN ===== */
+    
+    /* Tablet lớn (1200px trở xuống) */
+    @@media (max-width: 1200px) {
+        .table-fixed-layout {
+            min-width: 950px;
+        }
+        
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 24%;
+            min-width: 160px;
+        }
+        
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            width: 20%;
+            min-width: 150px;
+        }
+        
+        .table-fixed-layout th:nth-child(4),
+        .table-fixed-layout td:nth-child(4) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 20%;
+            min-width: 150px;
+        }
+    }
+    
+    /* Tablet (992px trở xuống) */
+    @@media (max-width: 992px) {
+        .table-fixed-layout {
+            min-width: 800px;
+        }
+        
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 15%;
+            min-width: 90px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 25%;
+            min-width: 150px;
+        }
+        
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            width: 20%;
+            min-width: 140px;
+        }
+        
+        .table-fixed-layout th:nth-child(4),
+        .table-fixed-layout td:nth-child(4) {
+            width: 13%;
+            min-width: 90px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 12%;
+            min-width: 85px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 18%;
+            min-width: 130px;
+        }
+    }
+    
+    /* Desktop - hiển thị quick actions */
+    @@media (min-width: 769px) {
+        .quick-actions {
+            display: flex !important;
+        }
+        
+        .action-buttons .dropdown {
+            display: none !important;
+        }
+    }
+    
+    /* Mobile lớn (768px trở xuống) */
+    @@media (max-width: 768px) {
+        .table-fixed-layout {
+            min-width: 600px;
+        }
+        
+        /* Ẩn cột sĩ số trên mobile */
+        .table-fixed-layout th:nth-child(4),
+        .table-fixed-layout td:nth-child(4) {
+            display: none;
+        }
+        
+        /* Điều chỉnh lại tỷ lệ cột */
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 18%;
+            min-width: 80px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 35%;
+            min-width: 140px;
+        }
+        
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            width: 25%;
+            min-width: 120px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 12%;
+            min-width: 80px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 10%;
+            min-width: 80px;
+        }
+        
+        /* Ẩn quick actions, chỉ hiển thị dropdown */
+        .quick-actions {
+            display: none !important;
+        }
+        
+        .action-buttons .dropdown {
+            display: block !important;
+        }
+        
+        .btn-action {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+        
+        .action-buttons {
+            min-width: auto;
+        }
+    }
+    
+    /* Mobile nhỏ (576px trở xuống) */
+    @@media (max-width: 576px) {
+        .table-fixed-layout {
+            min-width: 500px;
+        }
+        
+        /* Ẩn cột giảng viên trên mobile nhỏ */
+        .table-fixed-layout th:nth-child(3),
+        .table-fixed-layout td:nth-child(3) {
+            display: none;
+        }
+        
+        /* Điều chỉnh lại tỷ lệ cột */
+        .table-fixed-layout th:nth-child(1),
+        .table-fixed-layout td:nth-child(1) {
+            width: 25%;
+            min-width: 80px;
+        }
+        
+        .table-fixed-layout th:nth-child(2),
+        .table-fixed-layout td:nth-child(2) {
+            width: 45%;
+            min-width: 120px;
+        }
+        
+        .table-fixed-layout th:nth-child(5),
+        .table-fixed-layout td:nth-child(5) {
+            width: 15%;
+            min-width: 70px;
+        }
+        
+        .table-fixed-layout th:nth-child(6),
+        .table-fixed-layout td:nth-child(6) {
+            width: 15%;
+            min-width: 70px;
+        }
+        
+        /* Giảm padding cho mobile nhỏ */
+        .table-fixed-layout th,
+        .table-fixed-layout td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    }
+</style>

@@ -1,0 +1,520 @@
+@model Web_SIMS.ViewModels.BulkEnrollmentViewModel
+
+@{
+    ViewData["Title"] = "Đăng ký hàng loạt";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/bulk-enrollment.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/enrollments">Quản lý Đăng ký</a></li>
+                <li class="breadcrumb-item active">Đăng ký hàng loạt</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users-plus me-2 text-primary"></i>Đăng ký hàng loạt
+        </h1>
+        <p class="text-muted mb-0">Thêm nhiều sinh viên vào khóa học cùng một lúc</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/admin/enrollments/create" class="btn btn-outline-info">
+            <i class="fas fa-user-plus me-2"></i>Đăng ký đơn lẻ
+        </a>
+        <a href="/admin/enrollments" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Bulk Enrollment Form -->
+<div class="row">
+    <div class="col-12">
+        <div class="bulk-enrollment-container">
+            <form asp-action="BulkCreate" method="post" id="bulk-enrollment-form" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-modern" role="alert"></div>
+
+                <!-- Step 1: Course Selection -->
+                <div class="enrollment-step active" id="step-1">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-info">
+                            <h4>Chọn khóa học</h4>
+                            <p>Chọn khóa học mà bạn muốn đăng ký sinh viên</p>
+                        </div>
+                    </div>
+                    <div class="step-content">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="form-group-modern">
+                                    <label asp-for="CourseId" class="form-label-modern">
+                                        <i class="fas fa-book"></i>
+                                        Khóa học
+                                    </label>
+                                    <select asp-for="CourseId" class="form-select-modern" asp-items="ViewBag.Courses" id="course-select">
+                                        <option value="">-- Chọn khóa học --</option>
+                                    </select>
+                                    <span asp-validation-for="CourseId" class="validation-message"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Course Info Display -->
+                        <div id="course-info-display" class="course-info-card" style="display: none;">
+                            <div class="course-header">
+                                <div class="course-avatar">
+                                    <span class="course-code-display"></span>
+                                </div>
+                                <div class="course-details">
+                                    <h5 class="course-name-display"></h5>
+                                    <div class="course-meta">
+                                        <span class="course-credits-display"></span>
+                                        <span class="separator">•</span>
+                                        <span class="course-capacity-display"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="enrollment-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number current-enrollments">0</div>
+                                    <div class="stat-label">Đã đăng ký</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number remaining-slots">0</div>
+                                    <div class="stat-label">Còn lại</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Student Selection -->
+                <div class="enrollment-step" id="step-2">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-info">
+                            <h4>Chọn sinh viên</h4>
+                            <p>Chọn các sinh viên muốn đăng ký khóa học</p>
+                        </div>
+                    </div>
+                    <div class="step-content">
+                        <!-- Student Selection Controls -->
+                        <div class="selection-controls">
+                            <div class="search-box">
+                                <input type="text" id="student-search" class="form-control-modern" placeholder="Tìm kiếm sinh viên theo tên hoặc mã...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="selection-actions">
+                                <button type="button" class="btn-action" id="select-all-btn">
+                                    <i class="fas fa-check-double"></i>
+                                    Chọn tất cả
+                                </button>
+                                <button type="button" class="btn-action" id="clear-all-btn">
+                                    <i class="fas fa-times"></i>
+                                    Bỏ chọn tất cả
+                                </button>
+                                <div class="selection-count">
+                                    Đã chọn: <span id="selected-count">0</span> sinh viên
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Students Grid -->
+                        <div id="students-grid" class="students-grid">
+                            <div class="loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Đang tải danh sách sinh viên...</p>
+                            </div>
+                        </div>
+
+                        <!-- Selected Students Summary -->
+                        <div id="selected-students-summary" class="selected-summary" style="display: none;">
+                            <h6><i class="fas fa-users me-2"></i>Sinh viên đã chọn</h6>
+                            <div id="selected-students-list" class="selected-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Additional Options -->
+                <div class="enrollment-step" id="step-3">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-info">
+                            <h4>Tùy chọn bổ sung</h4>
+                            <p>Thiết lập trạng thái và ghi chú cho đăng ký</p>
+                        </div>
+                    </div>
+                    <div class="step-content">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group-modern">
+                                    <label asp-for="Status" class="form-label-modern">
+                                        <i class="fas fa-flag"></i>
+                                        Trạng thái đăng ký
+                                    </label>
+                                    <select asp-for="Status" class="form-select-modern">
+                                        <option value="@EnrollmentStatus.Pending">Chờ duyệt</option>
+                                        <option value="@EnrollmentStatus.Approved">Đã duyệt</option>
+                                    </select>
+                                    <small class="form-help">Chọn "Đã duyệt" nếu muốn tự động duyệt tất cả đăng ký</small>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-group-modern">
+                                    <label asp-for="Notes" class="form-label-modern">
+                                        <i class="fas fa-sticky-note"></i>
+                                        Ghi chú chung
+                                    </label>
+                                    <textarea asp-for="Notes" class="form-control-modern textarea-modern" rows="3" placeholder="Ghi chú áp dụng cho tất cả đăng ký (tùy chọn)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation & Submit -->
+                <div class="form-navigation">
+                    <div class="nav-buttons">
+                        <button type="button" class="btn-nav btn-prev" id="prev-btn" style="display: none;">
+                            <i class="fas fa-arrow-left"></i>
+                            Quay lại
+                        </button>
+                        <button type="button" class="btn-nav btn-next" id="next-btn" disabled>
+                            Tiếp theo
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="submit" class="btn-nav btn-submit" id="submit-btn" style="display: none;">
+                            <i class="fas fa-save"></i>
+                            Tạo đăng ký hàng loạt
+                        </button>
+                    </div>
+                    <div class="progress-indicator">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">
+                            Bước <span id="current-step">1</span> / 3
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden inputs for selected students -->
+                <div id="hidden-inputs"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const courseSelect = document.getElementById('course-select');
+            const courseInfoDisplay = document.getElementById('course-info-display');
+            const studentsGrid = document.getElementById('students-grid');
+            const studentSearch = document.getElementById('student-search');
+            const selectAllBtn = document.getElementById('select-all-btn');
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            const selectedCount = document.getElementById('selected-count');
+            const selectedSummary = document.getElementById('selected-students-summary');
+            const selectedList = document.getElementById('selected-students-list');
+            const hiddenInputs = document.getElementById('hidden-inputs');
+            
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const currentStepSpan = document.getElementById('current-step');
+            const progressFill = document.getElementById('progress-fill');
+            
+            let currentStep = 1;
+            let availableStudents = [];
+            let selectedStudents = [];
+            let courseData = null;
+            
+            // Step navigation
+            function updateStepDisplay() {
+                document.querySelectorAll('.enrollment-step').forEach((step, index) => {
+                    step.classList.toggle('active', index + 1 === currentStep);
+                });
+                
+                currentStepSpan.textContent = currentStep;
+                progressFill.style.width = `${(currentStep / 3) * 100}%`;
+                
+                prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+                nextBtn.style.display = currentStep < 3 ? 'block' : 'none';
+                submitBtn.style.display = currentStep === 3 ? 'block' : 'none';
+                
+                updateNavigationState();
+            }
+            
+            function updateNavigationState() {
+                let canProceed = false;
+                
+                switch(currentStep) {
+                    case 1:
+                        canProceed = courseSelect.value !== '';
+                        break;
+                    case 2:
+                        canProceed = selectedStudents.length > 0;
+                        break;
+                    case 3:
+                        canProceed = selectedStudents.length > 0;
+                        break;
+                }
+                
+                nextBtn.disabled = !canProceed;
+                submitBtn.disabled = !canProceed;
+            }
+            
+            // Course selection
+            courseSelect.addEventListener('change', async function() {
+                const courseId = this.value;
+                
+                if (!courseId) {
+                    courseInfoDisplay.style.display = 'none';
+                    studentsGrid.innerHTML = '<div class="loading-state"><p>Vui lòng chọn khóa học</p></div>';
+                    updateNavigationState();
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/admin/enrollments/get-available-students/${courseId}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        courseData = data.course;
+                        availableStudents = data.students;
+                        
+                        displayCourseInfo(courseData);
+                        displayStudents(availableStudents);
+                        
+                        // Reset selections
+                        selectedStudents = [];
+                        updateSelectedDisplay();
+                        updateNavigationState();
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Error loading students:', error);
+                    alert('Có lỗi xảy ra khi tải danh sách sinh viên');
+                }
+            });
+            
+            function displayCourseInfo(course) {
+                document.querySelector('.course-code-display').textContent = course.courseCode;
+                document.querySelector('.course-name-display').textContent = course.courseName;
+                document.querySelector('.course-credits-display').textContent = `${course.maxStudents} sinh viên`;
+                document.querySelector('.course-capacity-display').textContent = `Tối đa ${course.maxStudents}`;
+                document.querySelector('.current-enrollments').textContent = course.currentEnrollments;
+                document.querySelector('.remaining-slots').textContent = course.remainingSlots;
+                
+                courseInfoDisplay.style.display = 'block';
+            }
+            
+            function displayStudents(students) {
+                if (students.length === 0) {
+                    studentsGrid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h5>Không có sinh viên khả dụng</h5>
+                            <p>Tất cả sinh viên đã đăng ký khóa học này hoặc khóa học đã đầy.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const studentsHtml = students.map(student => `
+                    <div class="student-card" data-student-id="${student.studentId}">
+                        <div class="student-checkbox">
+                            <input type="checkbox" id="student-${student.studentId}" value="${student.studentId}">
+                        </div>
+                        <div class="student-avatar">
+                            <span>${getInitials(student.fullName)}</span>
+                        </div>
+                        <div class="student-info">
+                            <h6 class="student-name">${student.fullName}</h6>
+                            <p class="student-code">${student.studentCode}</p>
+                            <p class="student-email">${student.email}</p>
+                        </div>
+                    </div>
+                `).join('');
+                
+                studentsGrid.innerHTML = studentsHtml;
+                
+                // Add event listeners to checkboxes
+                studentsGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', handleStudentSelection);
+                });
+                
+                // Add click handlers to cards
+                studentsGrid.querySelectorAll('.student-card').forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        if (e.target.type !== 'checkbox') {
+                            const checkbox = this.querySelector('input[type="checkbox"]');
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event('change'));
+                        }
+                    });
+                });
+            }
+            
+            function getInitials(name) {
+                return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            }
+            
+            function handleStudentSelection(e) {
+                const studentId = parseInt(e.target.value);
+                const isChecked = e.target.checked;
+                
+                if (isChecked) {
+                    const student = availableStudents.find(s => s.studentId === studentId);
+                    if (student && !selectedStudents.find(s => s.studentId === studentId)) {
+                        selectedStudents.push(student);
+                    }
+                } else {
+                    selectedStudents = selectedStudents.filter(s => s.studentId !== studentId);
+                }
+                
+                updateSelectedDisplay();
+                updateNavigationState();
+                
+                // Update card appearance
+                const card = e.target.closest('.student-card');
+                card.classList.toggle('selected', isChecked);
+            }
+            
+            function updateSelectedDisplay() {
+                selectedCount.textContent = selectedStudents.length;
+                
+                if (selectedStudents.length > 0) {
+                    const selectedHtml = selectedStudents.map(student => `
+                        <div class="selected-student">
+                            <span class="student-name">${student.fullName}</span>
+                            <span class="student-code">(${student.studentCode})</span>
+                            <button type="button" class="remove-student" data-student-id="${student.studentId}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                    
+                    selectedList.innerHTML = selectedHtml;
+                    selectedSummary.style.display = 'block';
+                    
+                    // Add remove handlers
+                    selectedList.querySelectorAll('.remove-student').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const studentId = parseInt(this.dataset.studentId);
+                            const checkbox = document.getElementById(`student-${studentId}`);
+                            if (checkbox) {
+                                checkbox.checked = false;
+                                checkbox.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    });
+                } else {
+                    selectedSummary.style.display = 'none';
+                }
+                
+                updateHiddenInputs();
+            }
+            
+            function updateHiddenInputs() {
+                hiddenInputs.innerHTML = selectedStudents.map((student, index) => 
+                    `<input type="hidden" name="StudentIds[${index}]" value="${student.studentId}">`
+                ).join('');
+            }
+            
+            // Search functionality
+            studentSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const studentCards = studentsGrid.querySelectorAll('.student-card');
+                
+                studentCards.forEach(card => {
+                    const name = card.querySelector('.student-name').textContent.toLowerCase();
+                    const code = card.querySelector('.student-code').textContent.toLowerCase();
+                    const email = card.querySelector('.student-email').textContent.toLowerCase();
+                    
+                    const matches = name.includes(searchTerm) || 
+                                   code.includes(searchTerm) || 
+                                   email.includes(searchTerm);
+                    
+                    card.style.display = matches ? 'block' : 'none';
+                });
+            });
+            
+            // Select/Clear all
+            selectAllBtn.addEventListener('click', function() {
+                const visibleCheckboxes = Array.from(studentsGrid.querySelectorAll('input[type="checkbox"]'))
+                    .filter(cb => cb.closest('.student-card').style.display !== 'none');
+                
+                visibleCheckboxes.forEach(checkbox => {
+                    if (!checkbox.checked) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+            
+            clearAllBtn.addEventListener('click', function() {
+                studentsGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.dispatchEvent(new Event('change'));
+                });
+            });
+            
+            // Navigation
+            nextBtn.addEventListener('click', function() {
+                if (currentStep < 3) {
+                    currentStep++;
+                    updateStepDisplay();
+                }
+            });
+            
+            prevBtn.addEventListener('click', function() {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateStepDisplay();
+                }
+            });
+            
+            // Form submission
+            document.getElementById('bulk-enrollment-form').addEventListener('submit', function(e) {
+                if (selectedStudents.length === 0) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn ít nhất một sinh viên');
+                    return;
+                }
+                
+                if (courseData && selectedStudents.length > courseData.remainingSlots) {
+                    if (!confirm(`Bạn đã chọn ${selectedStudents.length} sinh viên nhưng khóa học chỉ còn ${courseData.remainingSlots} chỗ trống. Tiếp tục?`)) {
+                        e.preventDefault();
+                        return;
+                    }
+                }
+                
+                // Show loading state
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                submitBtn.disabled = true;
+            });
+            
+            // Initialize
+            updateStepDisplay();
+            
+            // Auto-select course if provided in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('courseId');
+            if (courseId) {
+                courseSelect.value = courseId;
+                courseSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+}

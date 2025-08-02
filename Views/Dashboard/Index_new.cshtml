@@ -1,0 +1,301 @@
+@model Web_SIMS.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Welcome Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-2">Chào m?ng tr? l?i, @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)!</h2>
+                        <p class="mb-0 opacity-75">Hôm nay là @DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))</p>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalStudents</h3>
+            <p class="stats-label">T?ng Sinh viên</p>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-arrow-up"></i> @Model.ActiveStudents ho?t d?ng
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h3 class="stats-number">@(ViewBag.TotalFaculties ?? 0)</h3>
+            <p class="stats-label">T?ng Gi?ng viên</p>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-check-circle"></i> @(ViewBag.ActiveFaculties ?? 0) dang ho?t d?ng
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalCourses</h3>
+            <p class="stats-label">T?ng Khóa h?c</p>
+            <div class="mt-2">
+                <small class="text-info">
+                    <i class="fas fa-play-circle"></i> @Model.ActiveCourses dang m?
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalEnrollments</h3>
+            <p class="stats-label">T?ng Ðang ký</p>
+            <div class="mt-2">
+                <small class="text-warning">
+                    <i class="fas fa-clock"></i> @Model.PendingEnrollments ch? duy?t
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Charts and Recent Activity -->
+<div class="row mb-4">
+    <!-- Recent Enrollments -->
+    <div class="col-lg-8 col-md-7 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-clipboard-list me-2"></i>Ðang ký g?n dây
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sinh viên</th>
+                                <th>Khóa h?c</th>
+                                <th>Ngày dang ký</th>
+                                <th>Tr?ng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enrollment in Model.RecentEnrollments)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                                @enrollment.StudentName.Substring(0, 1).ToUpper()
+                                            </div>
+                                            @enrollment.StudentName
+                                        </div>
+                                    </td>
+                                    <td>@enrollment.CourseName</td>
+                                    <td>@enrollment.EnrollmentDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (enrollment.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Ðã duy?t
+                                            </span>
+                                        }
+                                        else if (enrollment.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>Ch? duy?t
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times me-1"></i>@enrollment.Status
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Quick Stats and Chart -->
+    <div class="col-lg-4 col-md-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie me-2"></i>Th?ng kê nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Average Score -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">Ði?m trung bình</span>
+                        <span class="badge bg-info">@Model.AverageScore.ToString("F2")</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-gradient" 
+                             style="width: @(Model.AverageScore * 10)%; background: linear-gradient(90deg, #f59e0b, #10b981);"
+                             role="progressbar">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Courses -->
+                <h6 class="mb-3">Khóa h?c ph? bi?n</h6>
+                @foreach (var course in Model.TopCourses.Take(5))
+                {
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold">@course.CourseName</span>
+                            <small class="text-muted">@course.EnrollmentCount/@course.MaxStudents</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" 
+                                 style="width: @(course.EnrollmentRate)%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"
+                                 role="progressbar">
+                            </div>
+                        </div>
+                        <small class="text-muted">@course.EnrollmentRate.ToString("F1")% dang ký</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/students/create" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i>Thêm sinh viên
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/faculties/create" class="btn btn-success w-100">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Thêm gi?ng viên
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/courses/create" class="btn btn-warning w-100">
+                            <i class="fas fa-book-plus me-2"></i>Thêm khóa h?c
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/enrollments" class="btn btn-info w-100">
+                            <i class="fas fa-clipboard-check me-2"></i>Duy?t dang ký
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Styles {
+    <style>
+        /* Ensure cards have equal height */
+        .h-100 {
+            height: 100% !important;
+        }
+        
+        /* Responsive adjustments for dashboard layout */
+        @@media (max-width: 991.98px) {
+            .col-lg-8.col-md-7 {
+                flex: 0 0 auto;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .col-lg-4.col-md-5 {
+                flex: 0 0 auto;
+                width: 100%;
+            }
+        }
+        
+        @@media (min-width: 992px) {
+            .col-lg-8.col-md-7 {
+                flex: 0 0 auto;
+                width: 66.66666667%;
+            }
+            
+            .col-lg-4.col-md-5 {
+                flex: 0 0 auto;
+                width: 33.33333333%;
+            }
+        }
+        
+        /* Ensure table is responsive within the card */
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        /* Better spacing for dashboard cards */
+        .card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.25rem 2rem 0 rgba(58, 59, 69, 0.2);
+        }
+        
+        /* User avatar styling */
+        .user-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+}

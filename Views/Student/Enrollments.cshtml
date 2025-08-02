@@ -1,0 +1,143 @@
+@model IEnumerable<Web_SIMS.Models.Enrollment>
+@using Web_SIMS.Models
+
+@{
+    ViewData["Title"] = "Danh sách đăng ký khóa học";
+    var student = ViewBag.Student as Web_SIMS.Models.Student;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="card-title mb-0">
+                                <i class="fas fa-list-alt text-primary me-2"></i>
+                                Danh sách đăng ký khóa học
+                            </h3>
+                            <p class="text-muted mb-0 mt-1">
+                                Sinh viên: <strong>@student?.FullName</strong> (@student?.StudentCode)
+                            </p>
+                        </div>
+                        <div>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Quay lại
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Lưu ý:</strong> Sinh viên này có <strong>@Model.Count()</strong> đăng ký khóa học. 
+                            Cần hủy tất cả đăng ký trước khi có thể xóa sinh viên.
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Mã khóa học</th>
+                                        <th>Tên khóa học</th>
+                                        <th>Giảng viên</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày đăng ký</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var enrollment in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary">@enrollment.Course?.CourseCode</span>
+                                            </td>
+                                            <td>
+                                                <strong>@enrollment.Course?.CourseName</strong>
+                                                <br>
+                                                <small class="text-muted">@enrollment.Course?.Description</small>
+                                            </td>
+                                            <td>
+                                                @if (enrollment.Course?.Faculty != null)
+                                                {
+                                                    <span>@enrollment.Course.Faculty.FullName</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Chưa phân công</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (enrollment.Status)
+                                                {
+                                                    case EnrollmentStatus.Approved:
+                                                        <span class="badge bg-success">Đã duyệt</span>
+                                                        break;
+                                                    case EnrollmentStatus.Pending:
+                                                        <span class="badge bg-warning">Chờ duyệt</span>
+                                                        break;
+                                                    case EnrollmentStatus.Rejected:
+                                                        <span class="badge bg-danger">Từ chối</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@enrollment.Status</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @enrollment.EnrollmentDate.ToString("dd/MM/yyyy HH:mm")
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-controller="Enrollment" asp-action="Details" asp-route-id="@enrollment.EnrollmentId" 
+                                                       class="btn btn-sm btn-outline-info" title="Xem chi tiết">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-controller="Enrollment" asp-action="Delete" asp-route-id="@enrollment.EnrollmentId" 
+                                                       class="btn btn-sm btn-outline-danger" title="Hủy đăng ký"
+                                                       onclick="return confirm('Bạn có chắc chắn muốn hủy đăng ký khóa học này?')">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Hướng dẫn:</strong> Để xóa sinh viên này, bạn cần hủy tất cả các đăng ký khóa học bằng cách click vào nút 
+                                <i class="fas fa-times text-danger"></i> ở cột "Thao tác".
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Tuyệt vời!</strong> Sinh viên này không có đăng ký khóa học nào. Bạn có thể xóa sinh viên này.
+                        </div>
+                        
+                        <div class="text-center">
+                            <a asp-action="Delete" asp-route-id="@student?.StudentId" 
+                               class="btn btn-danger"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa sinh viên @student?.FullName?')">
+                                <i class="fas fa-trash me-1"></i>
+                                Xóa sinh viên
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

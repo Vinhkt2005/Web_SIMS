@@ -1,0 +1,453 @@
+@model Web_SIMS.Models.Enrollment
+
+@{
+    ViewData["Title"] = "Chỉnh sửa đăng ký";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Đăng ký</a></li>
+                <li class="breadcrumb-item active">Chỉnh sửa đăng ký</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit text-primary me-2"></i>Chỉnh sửa đăng ký
+        </h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header bg-gradient-primary text-white py-4">
+                <div class="d-flex align-items-center">
+                    <div class="icon-circle bg-white text-primary me-3">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-1">Thông tin đăng ký</h5>
+                        <p class="card-subtitle mb-0 opacity-75">Cập nhật thông tin đăng ký sinh viên</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm" role="alert"></div>
+                    
+                    <input type="hidden" asp-for="EnrollmentId" />
+                    <input type="hidden" asp-for="EnrollmentDate" />
+
+                    <!-- Student and Course Information -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-6">
+                            <div class="info-card h-100">
+                                <div class="info-card-header">
+                                    <div class="info-icon bg-primary">
+                                        <i class="fas fa-user-graduate"></i>
+                                    </div>
+                                    <h6 class="info-title">Thông tin sinh viên</h6>
+                                </div>
+                                <div class="info-card-body">
+                                    <div class="student-info">
+                                        <div class="student-avatar">
+                                            <i class="fas fa-user-circle text-primary"></i>
+                                        </div>
+                                        <div class="student-details">
+                                            <h6 class="student-name">@Model.Student?.FullName</h6>
+                                            <span class="student-code">@Model.Student?.StudentCode</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" asp-for="StudentId" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="info-card h-100">
+                                <div class="info-card-header">
+                                    <div class="info-icon bg-success">
+                                        <i class="fas fa-book-open"></i>
+                                    </div>
+                                    <h6 class="info-title">Thông tin khóa học</h6>
+                                </div>
+                                <div class="info-card-body">
+                                    <div class="course-info">
+                                        <div class="course-icon">
+                                            <i class="fas fa-graduation-cap text-success"></i>
+                                        </div>
+                                        <div class="course-details">
+                                            <h6 class="course-name">@Model.Course?.CourseName</h6>
+                                            <span class="course-code">@Model.Course?.CourseCode</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" asp-for="CourseId" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status and Date Information -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-6">
+                            <div class="form-group-modern">
+                                <label asp-for="Status" class="form-label-modern">
+                                    <i class="fas fa-flag me-2"></i>Trạng thái đăng ký
+                                </label>
+                                <div class="select-wrapper">
+                                    <select asp-for="Status" class="form-select-modern">
+                                        <option value="Pending">🟡 Chờ duyệt</option>
+                                        <option value="Approved">🟢 Đã duyệt</option>
+                                        <option value="Rejected">🔴 Từ chối</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+                                <span asp-validation-for="Status" class="validation-message"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-calendar-alt me-2"></i>Ngày đăng ký
+                                </label>
+                                <div class="date-display">
+                                    <div class="date-icon">
+                                        <i class="fas fa-clock text-info"></i>
+                                    </div>
+                                    <div class="date-info">
+                                        <span class="date-value">@Model.EnrollmentDate.ToString("dd/MM/yyyy")</span>
+                                        <span class="time-value">@Model.EnrollmentDate.ToString("HH:mm")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div class="notes-section mb-4">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            <h6 class="section-title">Ghi chú đăng ký</h6>
+                        </div>
+                        <div class="form-group-modern">
+                            <label asp-for="Notes" class="form-label-modern">
+                                <i class="fas fa-comment me-2"></i>Ghi chú bổ sung
+                            </label>
+                            <div class="textarea-wrapper">
+                                <textarea asp-for="Notes" class="form-textarea-modern" rows="4" 
+                                         placeholder="Nhập ghi chú về đăng ký này (nếu có)..."></textarea>
+                                <div class="textarea-border"></div>
+                            </div>
+                            <span asp-validation-for="Notes" class="validation-message"></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-section">
+                        <div class="action-buttons">
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                <span>Quay lại danh sách</span>
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                <span>Cập nhật đăng ký</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Icon Circle */
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: #fff;
+            border: 1px solid #e3e6f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .info-card-header {
+            background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+            padding: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 0.75rem;
+        }
+
+        .info-title {
+            margin: 0;
+            font-weight: 600;
+            color: #5a5c69;
+        }
+
+        .info-card-body {
+            padding: 1.5rem;
+        }
+
+        /* Student Info */
+        .student-info, .course-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .student-avatar, .course-icon {
+            font-size: 2.5rem;
+            margin-right: 1rem;
+        }
+
+        .student-name, .course-name {
+            margin: 0 0 0.25rem 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .student-code, .course-code {
+            color: #6c757d;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* Modern Form Groups */
+        .form-group-modern {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label-modern {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .form-select-modern {
+            appearance: none;
+            background: #fff;
+            border: 2px solid #e3e6f0;
+            border-radius: 8px;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .form-select-modern:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            outline: none;
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+        }
+
+        /* Date Display */
+        .date-display {
+            background: #f8f9fc;
+            border: 2px solid #e3e6f0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .date-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .date-value {
+            font-weight: 600;
+            color: #2c3e50;
+            display: block;
+        }
+
+        .time-value {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Notes Section */
+        .notes-section {
+            background: #f8f9fc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e3e6f0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-icon {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 0.75rem;
+        }
+
+        .section-title {
+            margin: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+        }
+
+        .form-textarea-modern {
+            width: 100%;
+            border: 2px solid #e3e6f0;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .form-textarea-modern:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            outline: none;
+        }
+
+        /* Action Section */
+        .action-section {
+            background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 115, 223, 0.4);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid #6c757d;
+            color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            transform: translateY(-2px);
+        }
+
+        /* Validation Messages */
+        .validation-message {
+            color: #e74a3b;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .student-info, .course-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .student-avatar, .course-icon {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -2,148 +2,343 @@
 
 @{
     ViewData["Title"] = "Thêm khóa học mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-book-plus me-2"></i>Thêm khóa học mới
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/courses">Quản lý Khóa học</a></li>
+                <li class="breadcrumb-item active">Thêm mới</li>
+            </ol>
+        </nav>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Quay lại
+    </a>
+</div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-info-circle me-2"></i>Thông tin cơ bản
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label asp-for="CourseCode" class="form-label fw-semibold">
-                                        <i class="fas fa-id-card me-2"></i>Mã khóa học
-                                    </label>
-                                    <input asp-for="CourseCode" class="form-control" placeholder="VD: CS101" />
-                                    <span asp-validation-for="CourseCode" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="CourseName" class="form-label fw-semibold">
-                                        <i class="fas fa-book me-2"></i>Tên khóa học
-                                    </label>
-                                    <input asp-for="CourseName" class="form-control" placeholder="Nhập tên khóa học" />
-                                    <span asp-validation-for="CourseName" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Description" class="form-label fw-semibold">
-                                        <i class="fas fa-align-left me-2"></i>Mô tả
-                                    </label>
-                                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về khóa học"></textarea>
-                                    <span asp-validation-for="Description" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Credits" class="form-label fw-semibold">
-                                        <i class="fas fa-graduation-cap me-2"></i>Số tín chỉ
-                                    </label>
-                                    <input asp-for="Credits" type="number" class="form-control" min="1" max="10" placeholder="1-10" />
-                                    <span asp-validation-for="Credits" class="text-danger small"></span>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-cogs me-2"></i>Cấu hình khóa học
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label asp-for="MaxStudents" class="form-label fw-semibold">
-                                        <i class="fas fa-users me-2"></i>Số sinh viên tối đa
-                                    </label>
-                                    <input asp-for="MaxStudents" type="number" class="form-control" min="1" max="200" placeholder="1-200" />
-                                    <span asp-validation-for="MaxStudents" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Semester" class="form-label fw-semibold">
-                                        <i class="fas fa-calendar me-2"></i>Học kỳ
-                                    </label>
-                                    <select asp-for="Semester" class="form-select">
-                                        <option value="">Chọn học kỳ</option>
-                                        <option value="Học kỳ 1">Học kỳ 1</option>
-                                        <option value="Học kỳ 2">Học kỳ 2</option>
-                                        <option value="Học kỳ 3">Học kỳ 3</option>
-                                        <option value="Học kỳ hè">Học kỳ hè</option>
-                                    </select>
-                                    <span asp-validation-for="Semester" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="AcademicYear" class="form-label fw-semibold">
-                                        <i class="fas fa-calendar-alt me-2"></i>Năm học
-                                    </label>
-                                    <select asp-for="AcademicYear" class="form-select">
-                                        <option value="">Chọn năm học</option>
-                                        <option value="2024-2025">2024-2025</option>
-                                        <option value="2023-2024">2023-2024</option>
-                                        <option value="2022-2023">2022-2023</option>
-                                        <option value="2021-2022">2021-2022</option>
-                                    </select>
-                                    <span asp-validation-for="AcademicYear" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Instructor" class="form-label fw-semibold">
-                                        <i class="fas fa-chalkboard-teacher me-2"></i>Giảng viên
-                                    </label>
-                                    <input asp-for="Instructor" class="form-control" placeholder="Tên giảng viên phụ trách" />
-                                    <span asp-validation-for="Instructor" class="text-danger small"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a asp-action="Index" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
-                                    </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-2"></i>Lưu khóa học
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-book-plus me-2"></i>Thêm Khóa học mới
+                </h5>
             </div>
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+                <div class="card-body p-4">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Progress Steps -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="step-item active">
+                                    <div class="step-icon">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <span class="step-label">Thông tin cơ bản</span>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item">
+                                    <div class="step-icon">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <span class="step-label">Cấu hình khóa học</span>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item">
+                                    <div class="step-icon">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <span class="step-label">Giảng viên</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Thông tin cơ bản -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h6 class="form-section-title">
+                                    <i class="fas fa-book me-2"></i>Thông tin cơ bản
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label asp-for="CourseCode" class="form-label required">Mã khóa học</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-id-card"></i>
+                                        </span>
+                                        <input asp-for="CourseCode" class="form-control" placeholder="Ví dụ: CS101" required />
+                                    </div>
+                                    <span asp-validation-for="CourseCode" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="CourseName" class="form-label required">Tên khóa học</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-book"></i>
+                                        </span>
+                                        <input asp-for="CourseName" class="form-control" placeholder="Nhập tên khóa học" required />
+                                    </div>
+                                    <span asp-validation-for="CourseName" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Credits" class="form-label required">Số tín chỉ</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </span>
+                                        <input asp-for="Credits" type="number" class="form-control" min="1" max="10" placeholder="1-10" required />
+                                    </div>
+                                    <span asp-validation-for="Credits" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label">Mô tả khóa học</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-align-left"></i>
+                                        </span>
+                                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về khóa học"></textarea>
+                                    </div>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cấu hình khóa học -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h6 class="form-section-title">
+                                    <i class="fas fa-cogs me-2"></i>Cấu hình khóa học
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label asp-for="MaxStudents" class="form-label">Số sinh viên tối đa</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-users"></i>
+                                        </span>
+                                        <input asp-for="MaxStudents" type="number" class="form-control" min="1" max="200" placeholder="1-200" />
+                                    </div>
+                                    <span asp-validation-for="MaxStudents" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Semester" class="form-label">Học kỳ</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-calendar"></i>
+                                        </span>
+                                        <select asp-for="Semester" class="form-control">
+                                            <option value="">-- Chọn học kỳ --</option>
+                                            <option value="Học kỳ 1">Học kỳ 1</option>
+                                            <option value="Học kỳ 2">Học kỳ 2</option>
+                                            <option value="Học kỳ 3">Học kỳ 3</option>
+                                            <option value="Học kỳ hè">Học kỳ hè</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Semester" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="AcademicYear" class="form-label">Năm học</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </span>
+                                        <select asp-for="AcademicYear" class="form-control">
+                                            <option value="">-- Chọn năm học --</option>
+                                            <option value="2024-2025">2024-2025</option>
+                                            <option value="2023-2024">2023-2024</option>
+                                            <option value="2022-2023">2022-2023</option>
+                                            <option value="2021-2022">2021-2022</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="AcademicYear" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="FacultyId" class="form-label">Giảng viên phụ trách</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-chalkboard-teacher"></i>
+                                        </span>
+                                        <select asp-for="FacultyId" class="form-control">
+                                            <option value="">-- Chọn giảng viên --</option>
+                                            @if (ViewBag.Faculties != null)
+                                            {
+                                                @foreach (var faculty in ViewBag.Faculties)
+                                                {
+                                                    <option value="@faculty.FacultyId">@faculty.FullName (@faculty.FacultyCode)</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="FacultyId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary ml-2">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Các trường có dấu * là bắt buộc
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
     <script>
-        // Auto-format course code
-        document.getElementById('CourseCode').addEventListener('input', function(e) {
-            let value = e.target.value.toUpperCase();
-            e.target.value = value;
-        });
+        $(document).ready(function() {
+            // Auto-format course code
+            $('#CourseCode').on('input', function(e) {
+                let value = e.target.value.toUpperCase();
+                e.target.value = value;
+            });
 
-        // Auto-format instructor name
-        document.getElementById('Instructor').addEventListener('input', function(e) {
-            let value = e.target.value;
-            // Capitalize first letter of each word
-            value = value.replace(/\b\w/g, function(l) { return l.toUpperCase(); });
-            e.target.value = value;
+            // Validate max students
+            $('#MaxStudents').on('input', function() {
+                var value = parseInt($(this).val());
+                if (value < 1 || value > 200) {
+                    $(this).addClass('is-invalid');
+                    if (!$(this).next('.invalid-feedback').length) {
+                        $(this).after('<div class="invalid-feedback">Số sinh viên phải từ 1 đến 200</div>');
+                    }
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(this).next('.invalid-feedback').remove();
+                }
+            });
+
+            // Validate credits
+            $('#Credits').on('input', function() {
+                var value = parseInt($(this).val());
+                if (value < 1 || value > 10) {
+                    $(this).addClass('is-invalid');
+                    if (!$(this).next('.invalid-feedback').length) {
+                        $(this).after('<div class="invalid-feedback">Số tín chỉ phải từ 1 đến 10</div>');
+                    }
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(this).next('.invalid-feedback').remove();
+                }
+            });
+
+            // Handle form submission
+            $('form').on('submit', function(e) {
+                var submitBtn = $(this).find('button[type="submit"]');
+                var originalText = submitBtn.html();
+                
+                // Show loading state
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+                
+                // Basic client-side validation
+                var isValid = true;
+                var errorMessages = [];
+                
+                // Check required fields
+                if (!$('#CourseCode').val().trim()) {
+                    errorMessages.push('Mã khóa học là bắt buộc');
+                    isValid = false;
+                }
+                
+                if (!$('#CourseName').val().trim()) {
+                    errorMessages.push('Tên khóa học là bắt buộc');
+                    isValid = false;
+                }
+                
+                if (!$('#Credits').val() || $('#Credits').val() < 1) {
+                    errorMessages.push('Số tín chỉ phải lớn hơn 0');
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    
+                    // Show error messages
+                    var errorHtml = '<ul class="mb-0">';
+                    errorMessages.forEach(function(msg) {
+                        errorHtml += '<li>' + msg + '</li>';
+                    });
+                    errorHtml += '</ul>';
+                    
+                    $('.alert-danger').html(errorHtml).show();
+                    
+                    // Reset button
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
+                    
+                    // Scroll to top to show errors
+                    $('html, body').animate({
+                        scrollTop: $('.alert-danger').offset().top - 100
+                    }, 500);
+                    
+                    return false;
+                }
+                
+                // If validation passes, let the form submit normally
+                // The button will remain disabled to prevent double submission
+            });
+            
+            // Show validation summary if it has content
+            if ($('.alert-danger').text().trim().length > 0) {
+                $('.alert-danger').show();
+            } else {
+                $('.alert-danger').hide();
+            }
+            
+            // Debug: Log all validation errors
+            $('.text-danger').each(function() {
+                if ($(this).text().trim().length > 0) {
+                    console.log('Validation error:', $(this).text());
+                }
+            });
+            
+            // Debug: Check ModelState
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                console.log('ModelState is invalid');
+                @foreach (var error in ViewData.ModelState)
+                {
+                    <text>
+                    console.log('Field: @error.Key, Errors: @string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))');
+                    </text>
+                }
+                </text>
+            }
         });
     </script>
 }

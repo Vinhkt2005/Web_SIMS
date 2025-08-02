@@ -1,142 +1,166 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using Web_SIMS.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Web_SIMS.DTOs;
+using Web_SIMS.Interfaces.Services;
 using Web_SIMS.Models;
 using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-[Authorize]
-[Route("admin/enrollments")]
-public class EnrollmentController : Controller
+    [Authorize]
+    [Route("admin/enrollments")]
+    public class EnrollmentController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IEnrollmentService _enrollmentService;
+        private readonly ICourseService _courseService;
+        private readonly IStudentService _studentService;
         private readonly ILogger<EnrollmentController> _logger;
 
-        public EnrollmentController(AppDbContext context, ILogger<EnrollmentController> logger)
+        public EnrollmentController(
+            IEnrollmentService enrollmentService,
+            ICourseService courseService,
+            IStudentService studentService,
+            ILogger<EnrollmentController> logger)
         {
-            _context = context;
+            _enrollmentService = enrollmentService;
+            _courseService = courseService;
+            _studentService = studentService;
             _logger = logger;
         }
 
         // GET: /admin/enrollments
         [HttpGet("")]
-        public async Task<IActionResult> Index(string searchString, string statusFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString, string statusFilter, string courseFilter, int? pageNumber)
         {
-            ViewData["CurrentFilter"] = searchString;
-            ViewData["StatusFilter"] = statusFilter;
-
-            var enrollments = from e in _context.Enrollments
-                             .Include(e => e.Student)
-                             .Include(e => e.Course)
-                              select e;
-
-            if (!String.IsNullOrEmpty(searchString))
+            try
             {
-                enrollments = enrollments.Where(e => (e.Student != null && e.Student.FullName.Contains(searchString))
-                                               || (e.Course != null && e.Course.CourseName.Contains(searchString))
-                                               || (e.Student != null && e.Student.StudentCode.Contains(searchString)));
-            }
+                ViewData["CurrentFilter"] = searchString;
+                ViewData["StatusFilter"] = statusFilter;
+                ViewData["CourseFilter"] = courseFilter;
 
-            if (!String.IsNullOrEmpty(statusFilter))
-            {
-                if (Enum.TryParse<EnrollmentStatus>(statusFilter, out var status))
+                var filterOptions = new EnrollmentFilterOptions
                 {
-                    enrollments = enrollments.Where(e => e.Status == status);
-                }
+                    SearchString = searchString,
+                    StatusFilter = statusFilter,
+                    CourseFilter = courseFilter,
+                    PageNumber = pageNumber ?? 1,
+                    PageSize = 10
+                };
+
+                var enrollments = await _enrollmentService.GetEnrollmentsAsync(filterOptions);
+                return View(enrollments);
             }
-
-            enrollments = enrollments.OrderByDescending(e => e.EnrollmentDate);
-
-            int pageSize = 10;
-            return View(await PaginatedList<Enrollment>.CreateAsync(enrollments.AsNoTracking(), pageNumber ?? 1, pageSize));
-        }
-
-        // GET: /admin/enrollments/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "Error occurred while getting enrollments list");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách đăng ký.";
+                return View(new PaginatedList<Enrollment>(new List<Enrollment>(), 0, 1, 10));
             }
-
-            var enrollment = await _context.Enrollments
-                .Include(e => e.Student)
-                .Include(e => e.Course)
-                .FirstOrDefaultAsync(m => m.EnrollmentId == id);
-
-            if (enrollment == null)
-            {
-                return NotFound();
-            }
-
-            return View(enrollment);
         }
 
         // GET: /admin/enrollments/create
-        [Authorize(Roles = "Admin,Faculty")]
         [HttpGet("create")]
         public async Task<IActionResult> Create()
         {
-            ViewData["StudentId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Students.Where(s => s.IsActive), "StudentId", "FullName");
-            ViewData["CourseId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Courses.Where(c => c.IsActive), "CourseId", "CourseName");
-            return View();
+            try
+            {
+                // Load courses and students for dropdowns
+                var courseFilterOptions = new CourseFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var courses = await _courseService.GetCoursesAsync(courseFilterOptions);
+                ViewBag.Courses = courses.Select(c => new SelectListItem
+                {
+                    Value = c.CourseId.ToString(),
+                    Text = $"{c.CourseCode} - {c.CourseName}"
+                }).ToList();
+
+                var studentFilterOptions = new StudentFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var students = await _studentService.GetStudentsAsync(studentFilterOptions);
+                ViewBag.Students = students.Select(s => new SelectListItem
+                {
+                    Value = s.StudentId.ToString(),
+                    Text = $"{s.StudentCode} - {s.FullName}"
+                }).ToList();
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while loading create enrollment page");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải trang tạo đăng ký.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // POST: /admin/enrollments
-        [HttpPost("")]
+        // POST: /admin/enrollments/create
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Faculty")]
-        public async Task<IActionResult> Create([Bind("StudentId,CourseId,Notes")] Enrollment enrollment)
+        public async Task<IActionResult> Create([Bind("StudentId,CourseId,Status,Grade,Notes")] Enrollment enrollment)
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra sinh viên đã đăng ký khóa học này chưa
-                var existingEnrollment = await _context.Enrollments
-                    .FirstOrDefaultAsync(e => e.StudentId == enrollment.StudentId && e.CourseId == enrollment.CourseId);
-
-                if (existingEnrollment != null)
+                try
                 {
-                    ModelState.AddModelError(string.Empty, "Sinh viên đã đăng ký khóa học này.");
-                    ViewData["StudentId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Students.Where(s => s.IsActive), "StudentId", "FullName");
-                    ViewData["CourseId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Courses.Where(c => c.IsActive), "CourseId", "CourseName");
-                    return View(enrollment);
+                    enrollment.EnrollmentDate = DateTime.Now;
+                    await _enrollmentService.CreateEnrollmentAsync(enrollment);
+                    TempData["SuccessMessage"] = "Tạo đăng ký thành công.";
+                    return RedirectToAction(nameof(Index));
                 }
-
-                // Kiểm tra số lượng sinh viên đã đăng ký khóa học
-                var course = await _context.Courses.FindAsync(enrollment.CourseId);
-                var currentEnrollments = await _context.Enrollments
-                    .CountAsync(e => e.CourseId == enrollment.CourseId && e.Status == EnrollmentStatus.Approved);
-
-                if (course != null && currentEnrollments >= course.MaxStudents)
+                catch (InvalidOperationException ex)
                 {
-                    ModelState.AddModelError(string.Empty, "Khóa học đã đạt số lượng sinh viên tối đa.");
-                    ViewData["StudentId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Students.Where(s => s.IsActive), "StudentId", "FullName");
-                    ViewData["CourseId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Courses.Where(c => c.IsActive), "CourseId", "CourseName");
-                    return View(enrollment);
+                    ModelState.AddModelError("", ex.Message);
                 }
-
-                enrollment.EnrollmentDate = DateTime.Now;
-                enrollment.Status = EnrollmentStatus.Pending;
-
-                _context.Add(enrollment);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Đăng ký mới được tạo: Sinh viên {enrollment.StudentId} - Khóa học {enrollment.CourseId}");
-                TempData["SuccessMessage"] = "Đăng ký khóa học đã được tạo thành công.";
-
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while creating enrollment");
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi tạo đăng ký.");
+                }
             }
-            ViewData["StudentId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Students.Where(s => s.IsActive), "StudentId", "FullName");
-            ViewData["CourseId"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Courses.Where(c => c.IsActive), "CourseId", "CourseName");
+
+            // Reload dropdowns if validation fails
+            try
+            {
+                var courseFilterOptions = new CourseFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var courses = await _courseService.GetCoursesAsync(courseFilterOptions);
+                ViewBag.Courses = courses.Select(c => new SelectListItem
+                {
+                    Value = c.CourseId.ToString(),
+                    Text = $"{c.CourseCode} - {c.CourseName}"
+                }).ToList();
+
+                var studentFilterOptions = new StudentFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var students = await _studentService.GetStudentsAsync(studentFilterOptions);
+                ViewBag.Students = students.Select(s => new SelectListItem
+                {
+                    Value = s.StudentId.ToString(),
+                    Text = $"{s.StudentCode} - {s.FullName}"
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reloading dropdowns");
+            }
+
             return View(enrollment);
         }
 
         // GET: /admin/enrollments/edit/{id}
-        [Authorize(Roles = "Admin,Faculty")]
         [HttpGet("edit/{id}")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -145,25 +169,53 @@ public class EnrollmentController : Controller
                 return NotFound();
             }
 
-            var enrollment = await _context.Enrollments
-                .Include(e => e.Student)
-                .Include(e => e.Course)
-                .FirstOrDefaultAsync(m => m.EnrollmentId == id);
-
-            if (enrollment == null)
+            try
             {
-                return NotFound();
-            }
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id.Value);
+                if (enrollment == null)
+                {
+                    return NotFound();
+                }
 
-            return View(enrollment);
+                // Load courses and students for dropdowns
+                var courseFilterOptions = new CourseFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var courses = await _courseService.GetCoursesAsync(courseFilterOptions);
+                ViewBag.Courses = courses.Select(c => new SelectListItem
+                {
+                    Value = c.CourseId.ToString(),
+                    Text = $"{c.CourseCode} - {c.CourseName}"
+                }).ToList();
+
+                var studentFilterOptions = new StudentFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var students = await _studentService.GetStudentsAsync(studentFilterOptions);
+                ViewBag.Students = students.Select(s => new SelectListItem
+                {
+                    Value = s.StudentId.ToString(),
+                    Text = $"{s.StudentCode} - {s.FullName}"
+                }).ToList();
+
+                return View(enrollment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting enrollment for edit: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin đăng ký.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // POST: /admin/enrollments/{id}
-        [HttpPost("{id}")]
-        [HttpPut("{id}")]
+        // POST: /admin/enrollments/edit/{id}
+        [HttpPost("edit/{id}")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Faculty")]
-        public async Task<IActionResult> Edit(int id, [Bind("EnrollmentId,StudentId,CourseId,EnrollmentDate,Status,Notes")] Enrollment enrollment)
+        public async Task<IActionResult> Edit(int id, [Bind("EnrollmentId,StudentId,CourseId,Status,Grade,Notes,EnrollmentDate")] Enrollment enrollment)
         {
             if (id != enrollment.EnrollmentId)
             {
@@ -174,85 +226,64 @@ public class EnrollmentController : Controller
             {
                 try
                 {
-                    _context.Update(enrollment);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation($"Đăng ký được cập nhật: {enrollment.EnrollmentId}");
-                    TempData["SuccessMessage"] = "Thông tin đăng ký đã được cập nhật thành công.";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EnrollmentExists(enrollment.EnrollmentId))
+                    var success = await _enrollmentService.UpdateEnrollmentAsync(id, enrollment);
+                    if (success)
                     {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Cập nhật đăng ký thành công.";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        return NotFound();
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while updating enrollment: {EnrollmentId}", id);
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật đăng ký.");
+                }
             }
+
+            // Reload dropdowns if validation fails
+            try
+            {
+                var courseFilterOptions = new CourseFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var courses = await _courseService.GetCoursesAsync(courseFilterOptions);
+                ViewBag.Courses = courses.Select(c => new SelectListItem
+                {
+                    Value = c.CourseId.ToString(),
+                    Text = $"{c.CourseCode} - {c.CourseName}"
+                }).ToList();
+
+                var studentFilterOptions = new StudentFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var students = await _studentService.GetStudentsAsync(studentFilterOptions);
+                ViewBag.Students = students.Select(s => new SelectListItem
+                {
+                    Value = s.StudentId.ToString(),
+                    Text = $"{s.StudentCode} - {s.FullName}"
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reloading dropdowns");
+            }
+
             return View(enrollment);
         }
 
-        // POST: /admin/enrollments/approve/{id}
-        [HttpPost("approve/{id}")]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Faculty")]
-        public async Task<IActionResult> Approve(int id)
-        {
-            var enrollment = await _context.Enrollments
-                .Include(e => e.Course)
-                .FirstOrDefaultAsync(e => e.EnrollmentId == id);
-
-            if (enrollment == null)
-            {
-                return NotFound();
-            }
-
-            // Kiểm tra số lượng sinh viên đã đăng ký khóa học
-            var currentEnrollments = await _context.Enrollments
-                .CountAsync(e => e.CourseId == enrollment.CourseId && e.Status == EnrollmentStatus.Approved);
-
-            if (enrollment.Course != null && currentEnrollments >= enrollment.Course.MaxStudents)
-            {
-                TempData["ErrorMessage"] = "Khóa học đã đạt số lượng sinh viên tối đa.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            enrollment.Status = EnrollmentStatus.Approved;
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"Đăng ký được duyệt: {enrollment.EnrollmentId}");
-            TempData["SuccessMessage"] = "Đăng ký đã được duyệt thành công.";
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /admin/enrollments/reject/{id}
-        [HttpPost("reject/{id}")]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Faculty")]
-        public async Task<IActionResult> Reject(int id)
-        {
-            var enrollment = await _context.Enrollments.FindAsync(id);
-            if (enrollment == null)
-            {
-                return NotFound();
-            }
-
-            enrollment.Status = EnrollmentStatus.Rejected;
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"Đăng ký bị từ chối: {enrollment.EnrollmentId}");
-            TempData["SuccessMessage"] = "Đăng ký đã bị từ chối.";
-
-            return RedirectToAction(nameof(Index));
-        }
-
         // GET: /admin/enrollments/delete/{id}
-        [Authorize(Roles = "Admin,Faculty")]
         [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -261,42 +292,405 @@ public class EnrollmentController : Controller
                 return NotFound();
             }
 
-            var enrollment = await _context.Enrollments
-                .Include(e => e.Student)
-                .Include(e => e.Course)
-                .FirstOrDefaultAsync(m => m.EnrollmentId == id);
-
-            if (enrollment == null)
+            try
             {
-                return NotFound();
-            }
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id.Value);
+                if (enrollment == null)
+                {
+                    return NotFound();
+                }
 
-            return View(enrollment);
+                return View(enrollment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting enrollment for delete: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin đăng ký.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // DELETE: /admin/enrollments/{id}
-        [HttpPost("delete/{id}")]
-        [HttpDelete("{id}")]
+        // POST: /admin/enrollments/delete/{id}
+        [HttpPost("delete/{id}"), ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Faculty")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
-            if (enrollment != null)
+            try
             {
-                _context.Enrollments.Remove(enrollment);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Đăng ký bị xóa: {enrollment.EnrollmentId}");
-                TempData["SuccessMessage"] = "Đăng ký đã được xóa thành công.";
+                var success = await _enrollmentService.DeleteEnrollmentAsync(id);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Xóa đăng ký thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đăng ký để xóa.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting enrollment: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xóa đăng ký.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool EnrollmentExists(int id)
+        // GET: /admin/enrollments/bulk-create
+        [HttpGet("bulk-create")]
+        public async Task<IActionResult> BulkCreate(int? courseId)
         {
-            return _context.Enrollments.Any(e => e.EnrollmentId == id);
+            try
+            {
+                // Load courses for dropdown
+                var filterOptions = new CourseFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var courses = await _courseService.GetCoursesAsync(filterOptions);
+                ViewBag.Courses = courses.Select(c => new SelectListItem
+                {
+                    Value = c.CourseId.ToString(),
+                    Text = $"{c.CourseCode} - {c.CourseName}"
+                }).ToList();
+
+                // If courseId is provided, set it as selected
+                if (courseId.HasValue)
+                {
+                    ViewBag.SelectedCourseId = courseId.Value;
+                }
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while loading bulk create page");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải trang đăng ký hàng loạt.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: /admin/enrollments/bulk-create
+        [HttpPost("bulk-create")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkCreate(int courseId, List<int> studentIds)
+        {
+            try
+            {
+                if (studentIds == null || !studentIds.Any())
+                {
+                    TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một sinh viên.";
+                    return RedirectToAction(nameof(BulkCreate), new { courseId });
+                }
+
+                var successCount = 0;
+                var errorMessages = new List<string>();
+
+                foreach (var studentId in studentIds)
+                {
+                    try
+                    {
+                        var enrollment = new Enrollment
+                        {
+                            StudentId = studentId,
+                            CourseId = courseId,
+                            Status = EnrollmentStatus.Pending,
+                            EnrollmentDate = DateTime.Now
+                        };
+
+                        await _enrollmentService.CreateEnrollmentAsync(enrollment);
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error creating enrollment for student {StudentId} in course {CourseId}", studentId, courseId);
+                        errorMessages.Add($"Lỗi khi đăng ký sinh viên ID {studentId}");
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    TempData["SuccessMessage"] = $"Đã đăng ký thành công {successCount} sinh viên.";
+                }
+
+                if (errorMessages.Any())
+                {
+                    TempData["ErrorMessage"] = string.Join("; ", errorMessages);
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during bulk enrollment");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi đăng ký hàng loạt.";
+                return RedirectToAction(nameof(BulkCreate), new { courseId });
+            }
+        }
+
+        // POST: /admin/enrollments/update-status
+        [HttpPost("update-status")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int enrollmentId, EnrollmentStatus status)
+        {
+            try
+            {
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(enrollmentId);
+                if (enrollment == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đăng ký." });
+                }
+
+                enrollment.Status = status;
+                var success = await _enrollmentService.UpdateEnrollmentAsync(enrollmentId, enrollment);
+
+                if (success)
+                {
+                    return Json(new { success = true, message = "Cập nhật trạng thái thành công." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không thể cập nhật trạng thái." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating enrollment status: {EnrollmentId}", enrollmentId);
+                return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật trạng thái." });
+            }
+        }
+
+        // POST: /admin/enrollments/approve/{id}
+        [HttpPost("approve/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            try
+            {
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
+                if (enrollment == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đăng ký.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                enrollment.Status = EnrollmentStatus.Approved;
+                var success = await _enrollmentService.UpdateEnrollmentAsync(id, enrollment);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Đã chấp nhận đăng ký thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Không thể chấp nhận đăng ký.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error approving enrollment: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi chấp nhận đăng ký.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /admin/enrollments/approve/{id}
+        [HttpGet("approve/{id}")]
+        public async Task<IActionResult> ApproveGet(int id)
+        {
+            try
+            {
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
+                if (enrollment == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đăng ký.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                enrollment.Status = EnrollmentStatus.Approved;
+                var success = await _enrollmentService.UpdateEnrollmentAsync(id, enrollment);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Đã chấp nhận đăng ký thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Không thể chấp nhận đăng ký.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error approving enrollment: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi chấp nhận đăng ký.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /admin/enrollments/reject/{id}
+        [HttpPost("reject/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(int id, string rejectReason = "")
+        {
+            try
+            {
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
+                if (enrollment == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đăng ký.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                enrollment.Status = EnrollmentStatus.Rejected;
+                if (!string.IsNullOrEmpty(rejectReason))
+                {
+                    enrollment.Notes = string.IsNullOrEmpty(enrollment.Notes) 
+                        ? $"Lý do từ chối: {rejectReason}" 
+                        : $"{enrollment.Notes}\nLý do từ chối: {rejectReason}";
+                }
+                
+                var success = await _enrollmentService.UpdateEnrollmentAsync(id, enrollment);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Đã từ chối đăng ký thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Không thể từ chối đăng ký.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rejecting enrollment: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi từ chối đăng ký.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /admin/enrollments/reject/{id}
+        [HttpGet("reject/{id}")]
+        public async Task<IActionResult> RejectGet(int id, string rejectReason = "")
+        {
+            try
+            {
+                var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
+                if (enrollment == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đăng ký.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                enrollment.Status = EnrollmentStatus.Rejected;
+                if (!string.IsNullOrEmpty(rejectReason))
+                {
+                    enrollment.Notes = string.IsNullOrEmpty(enrollment.Notes) 
+                        ? $"Lý do từ chối: {rejectReason}" 
+                        : $"{enrollment.Notes}\nLý do từ chối: {rejectReason}";
+                }
+                
+                var success = await _enrollmentService.UpdateEnrollmentAsync(id, enrollment);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Đã từ chối đăng ký thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Không thể từ chối đăng ký.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rejecting enrollment: {EnrollmentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi từ chối đăng ký.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /admin/enrollments/check-enrollment-status
+        [HttpGet("check-enrollment-status")]
+        public async Task<IActionResult> CheckEnrollmentStatus(int studentId, int courseId)
+        {
+            try
+            {
+                var isEnrolled = await _enrollmentService.IsStudentEnrolledInCourseAsync(studentId, courseId);
+                var canEnroll = await _enrollmentService.CanEnrollStudentInCourseAsync(studentId, courseId);
+
+                return Json(new { isEnrolled, canEnroll });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking enrollment status for student {StudentId} and course {CourseId}", studentId, courseId);
+                return Json(new { isEnrolled = false, canEnroll = false, error = "Có lỗi xảy ra khi kiểm tra trạng thái đăng ký." });
+            }
+        }
+
+        // GET: /admin/enrollments/get-available-students/{courseId}
+        [HttpGet("get-available-students/{courseId}")]
+        public async Task<IActionResult> GetAvailableStudents(int courseId)
+        {
+            try
+            {
+                // Get course information
+                var course = await _courseService.GetCourseByIdAsync(courseId);
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy khóa học." });
+                }
+
+                // Get all active students
+                var studentFilterOptions = new StudentFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000
+                };
+                var allStudents = await _studentService.GetStudentsAsync(studentFilterOptions);
+
+                // Get students already enrolled in this course
+                var enrolledStudents = await _enrollmentService.GetEnrollmentsByCourseAsync(courseId);
+                var enrolledStudentIds = enrolledStudents.Select(e => e.StudentId).ToHashSet();
+
+                // Filter out already enrolled students
+                var availableStudents = allStudents
+                    .Where(s => !enrolledStudentIds.Contains(s.StudentId))
+                    .Select(s => new
+                    {
+                        studentId = s.StudentId,
+                        studentCode = s.StudentCode,
+                        fullName = s.FullName,
+                        email = s.Email,
+                        major = s.Major,
+                        academicYear = s.AcademicYear
+                    })
+                    .ToList();
+
+                // Prepare course information
+                var currentEnrollments = enrolledStudents.Count();
+                var remainingSlots = course.MaxStudents - currentEnrollments;
+                
+                var courseInfo = new
+                {
+                    courseId = course.CourseId,
+                    courseCode = course.CourseCode,
+                    courseName = course.CourseName,
+                    maxStudents = course.MaxStudents,
+                    currentEnrollments = currentEnrollments,
+                    remainingSlots = remainingSlots
+                };
+
+                return Json(new { success = true, course = courseInfo, students = availableStudents });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting available students for course: {CourseId}", courseId);
+                return Json(new { success = false, message = "Có lỗi xảy ra khi tải danh sách sinh viên." });
+            }
         }
     }
 }

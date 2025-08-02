@@ -1,0 +1,394 @@
+@model Web_SIMS.ViewModels.PaginatedList<Web_SIMS.Models.Enrollment>
+
+@{
+    ViewData["Title"] = "Danh sách sinh viên đăng ký";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var courseId = ViewData["CourseId"];
+    var courseName = ViewData["CourseName"];
+    var courseCode = ViewData["CourseCode"];
+    var totalEnrollments = Model.Count();
+    var approvedEnrollments = Model.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Approved);
+    var pendingEnrollments = Model.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Pending);
+    var rejectedEnrollments = Model.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Rejected);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/enrollment-list.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Course")">Quản lý Khóa học</a></li>
+                <li class="breadcrumb-item active">Danh sách sinh viên đăng ký</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users me-2 text-primary"></i>Danh sách sinh viên đăng ký
+        </h1>
+        <p class="text-muted mb-0">Quản lý sinh viên đăng ký khóa học @courseName</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
+        {
+            <a href="@Url.Action("BulkCreate", "Enrollment", new { courseId = courseId })" class="btn btn-success">
+                <i class="fas fa-users-plus me-2"></i>Đăng ký hàng loạt
+            </a>
+        }
+        <a href="@Url.Action("Details", "Course", new { id = courseId })" class="btn btn-outline-info">
+            <i class="fas fa-eye me-2"></i>Chi tiết khóa học
+        </a>
+        <a href="@Url.Action("Index", "Course")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Course Profile Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="course-enrollment-header">
+            <div class="course-avatar-enrollment">
+                <div class="avatar-circle-enrollment">
+                    <span class="avatar-text-enrollment">@((courseCode?.ToString() ?? "").Substring(0, Math.Min(3, (courseCode?.ToString() ?? "").Length)).ToUpper())</span>
+                </div>
+                <div class="status-indicator-enrollment active"></div>
+            </div>
+            <div class="course-info-enrollment">
+                <h2 class="course-name-enrollment">@courseName</h2>
+                <div class="course-meta-enrollment">
+                    <span class="course-code-enrollment">@courseCode</span>
+                </div>
+            </div>
+            <div class="enrollment-summary">
+                <div class="summary-item">
+                    <div class="summary-number">@totalEnrollments</div>
+                    <div class="summary-label">Sinh viên</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="stats-container">
+            <div class="stat-card-enrollment stat-card-blue">
+                <div class="stat-card-body-enrollment">
+                    <div class="stat-icon-enrollment">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content-enrollment">
+                        <div class="stat-number-enrollment">@totalEnrollments</div>
+                        <div class="stat-label-enrollment">Tổng đăng ký</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card-enrollment stat-card-green">
+                <div class="stat-card-body-enrollment">
+                    <div class="stat-icon-enrollment">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content-enrollment">
+                        <div class="stat-number-enrollment">@approvedEnrollments</div>
+                        <div class="stat-label-enrollment">Đã duyệt</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card-enrollment stat-card-orange">
+                <div class="stat-card-body-enrollment">
+                    <div class="stat-icon-enrollment">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content-enrollment">
+                        <div class="stat-number-enrollment">@pendingEnrollments</div>
+                        <div class="stat-label-enrollment">Chờ duyệt</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card-enrollment stat-card-red">
+                <div class="stat-card-body-enrollment">
+                    <div class="stat-icon-enrollment">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content-enrollment">
+                        <div class="stat-number-enrollment">@rejectedEnrollments</div>
+                        <div class="stat-label-enrollment">Từ chối</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enrollments List -->
+<div class="row">
+    <div class="col-12">
+        <div class="enrollments-container">
+            <div class="enrollments-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="enrollments-title">
+                        <i class="fas fa-list me-2"></i>
+                        Danh sách sinh viên đăng ký
+                    </h4>
+                    <div class="enrollments-count">
+                        <span class="badge badge-primary-soft">@totalEnrollments sinh viên</span>
+                    </div>
+                </div>
+                @if (totalEnrollments > 0)
+                {
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">
+                            Tất cả (@totalEnrollments)
+                        </button>
+                        <button class="filter-tab" data-filter="approved">
+                            Đã duyệt (@approvedEnrollments)
+                        </button>
+                        <button class="filter-tab" data-filter="pending">
+                            Chờ duyệt (@pendingEnrollments)
+                        </button>
+                        <button class="filter-tab" data-filter="rejected">
+                            Từ chối (@rejectedEnrollments)
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="enrollments-content">
+                    @if (Model.Any())
+                    {
+                        <!-- Modern Card-based Layout -->
+                        <div class="row g-4">
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var enrollment in Model)
+                            {
+                                <div class="col-lg-6 col-xl-4">
+                                    <div class="student-card-modern h-100 @(enrollment.Status == Web_SIMS.Models.EnrollmentStatus.Approved ? "approved" : enrollment.Status == Web_SIMS.Models.EnrollmentStatus.Pending ? "pending" : "rejected")" 
+                                         data-status="@enrollment.Status.ToString().ToLower()">
+                                        <!-- Card Header -->
+                                        <div class="card-header-modern">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="student-number-modern">
+                                                    <span class="number-badge">#@index</span>
+                                                </div>
+                                                <div class="status-badge-modern">
+                                                    @switch (enrollment.Status)
+                                                    {
+                                                        case Web_SIMS.Models.EnrollmentStatus.Approved:
+                                                            <span class="status-badge status-approved-modern">
+                                                                <i class="fas fa-check-circle"></i>
+                                                                <span>Đã duyệt</span>
+                                                            </span>
+                                                            break;
+                                                        case Web_SIMS.Models.EnrollmentStatus.Pending:
+                                                            <span class="status-badge status-pending-modern">
+                                                                <i class="fas fa-clock"></i>
+                                                                <span>Chờ duyệt</span>
+                                                            </span>
+                                                            break;
+                                                        case Web_SIMS.Models.EnrollmentStatus.Rejected:
+                                                            <span class="status-badge status-rejected-modern">
+                                                                <i class="fas fa-times-circle"></i>
+                                                                <span>Từ chối</span>
+                                                            </span>
+                                                            break;
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Student Avatar & Info -->
+                                        <div class="student-info-modern">
+                                            <div class="student-avatar-modern">
+                                                <div class="avatar-circle-modern">
+                                                    <span class="avatar-initials">@(enrollment.Student?.FullName?.Split(' ').FirstOrDefault()?.Substring(0, 1) + enrollment.Student?.FullName?.Split(' ').LastOrDefault()?.Substring(0, 1))</span>
+                                                </div>
+                                                <div class="online-indicator"></div>
+                                            </div>
+                                            <div class="student-details-modern">
+                                                <h5 class="student-name-modern">@enrollment.Student?.FullName</h5>
+                                                <p class="student-code-modern">
+                                                    <i class="fas fa-id-card"></i>
+                                                    <span>@enrollment.Student?.StudentCode</span>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Contact Info -->
+                                        <div class="contact-info-modern">
+                                            <div class="info-item-modern">
+                                                <div class="info-icon-modern email">
+                                                    <i class="fas fa-envelope"></i>
+                                                </div>
+                                                <div class="info-content-modern">
+                                                    <div class="info-label">Email</div>
+                                                    <div class="info-value">@enrollment.Student?.Email</div>
+                                                </div>
+                                            </div>
+                                            <div class="info-item-modern">
+                                                <div class="info-icon-modern birthday">
+                                                    <i class="fas fa-birthday-cake"></i>
+                                                </div>
+                                                <div class="info-content-modern">
+                                                    <div class="info-label">Ngày sinh</div>
+                                                    <div class="info-value">@(enrollment.Student?.DateOfBirth.ToString("dd/MM/yyyy") ?? "N/A")</div>
+                                                </div>
+                                            </div>
+                                            <div class="info-item-modern">
+                                                <div class="info-icon-modern enrollment">
+                                                    <i class="fas fa-calendar-plus"></i>
+                                                </div>
+                                                <div class="info-content-modern">
+                                                    <div class="info-label">Ngày đăng ký</div>
+                                                    <div class="info-value">@enrollment.EnrollmentDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Notes Section -->
+                                        @if (!string.IsNullOrEmpty(enrollment.Notes))
+                                        {
+                                            <div class="notes-section-modern">
+                                                <div class="notes-header-modern">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                    <span>Ghi chú</span>
+                                                </div>
+                                                <div class="notes-content-modern">@enrollment.Notes</div>
+                                            </div>
+                                        }
+
+                                        <!-- Card Footer with Quick Actions -->
+                                        <div class="card-footer-modern">
+                                            <div class="quick-actions-modern">
+                                                <a href="mailto:@enrollment.Student?.Email" 
+                                                   class="action-btn-modern email-btn-modern" 
+                                                   title="Gửi email">
+                                                    <i class="fas fa-envelope"></i>
+                                                    <span>Email</span>
+                                                </a>
+                                                <a href="@Url.Action("Details", "Student", new { id = enrollment.Student?.StudentId })" 
+                                                   class="action-btn-modern view-btn-modern" 
+                                                   title="Xem hồ sơ sinh viên">
+                                                    <i class="fas fa-user"></i>
+                                                    <span>Hồ sơ</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                index++;
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state-modern">
+                            <div class="empty-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4 class="empty-title">Chưa có sinh viên đăng ký</h4>
+                            <p class="empty-description">Khóa học này chưa có sinh viên nào đăng ký. Danh sách sẽ hiển thị khi có sinh viên đăng ký.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter functionality
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const studentCards = document.querySelectorAll('.student-card-modern');
+            
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    studentCards.forEach(card => {
+                        if (filter === 'all') {
+                            card.style.display = 'block';
+                            card.style.animation = 'fadeInUp 0.6s ease-out';
+                        } else {
+                            const cardStatus = card.getAttribute('data-status');
+                            if (cardStatus === filter) {
+                                card.style.display = 'block';
+                                card.style.animation = 'fadeInUp 0.6s ease-out';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Add hover effects for action buttons
+            document.querySelectorAll('.action-btn-modern').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Add click animation for cards
+            document.querySelectorAll('.student-card-modern').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (!e.target.closest('.action-btn-modern')) {
+                        this.style.transform = 'scale(0.98)';
+                        setTimeout(() => {
+                            this.style.transform = '';
+                        }, 150);
+                    }
+                });
+            });
+            
+            // Intersection Observer for animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all cards
+            document.querySelectorAll('.student-card-modern').forEach(card => {
+                observer.observe(card);
+            });
+            
+            // Auto refresh if there are pending enrollments
+            @if (pendingEnrollments > 0)
+            {
+                <text>
+                setTimeout(function() {
+                    location.reload();
+                }, 60000);
+                </text>
+            }
+        });
+    </script>
+}

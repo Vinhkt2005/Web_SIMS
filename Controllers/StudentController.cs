@@ -1,63 +1,57 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using Web_SIMS.Data;
+using Web_SIMS.DTOs;
+using Web_SIMS.Interfaces.Services;
 using Web_SIMS.Models;
 using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-[Authorize(Roles = "Admin,Faculty")]
-[Route("admin/students")]
-public class StudentController : Controller
+    [Authorize(Roles = "Admin")]
+    [Route("admin/students")]
+    public class StudentController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IStudentService _studentService;
+        private readonly IEnrollmentService _enrollmentService;
         private readonly ILogger<StudentController> _logger;
 
-        public StudentController(AppDbContext context, ILogger<StudentController> logger)
+        public StudentController(IStudentService studentService, IEnrollmentService enrollmentService, ILogger<StudentController> logger)
         {
-            _context = context;
+            _studentService = studentService;
+            _enrollmentService = enrollmentService;
             _logger = logger;
         }
 
         // GET: /admin/students
         [HttpGet("")]
-        public async Task<IActionResult> Index(string searchString, string sortOrder, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString, string statusFilter, string sortOrder, int? pageNumber)
         {
-            ViewData["CurrentSort"] = sortOrder;
-            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            ViewData["CodeSortParm"] = sortOrder == "Code" ? "code_desc" : "Code";
-            ViewData["CurrentFilter"] = searchString;
-
-            var students = from s in _context.Students
-                           select s;
-
-            if (!String.IsNullOrEmpty(searchString))
+            try
             {
-                students = students.Where(s => s.FullName.Contains(searchString)
-                                         || s.StudentCode.Contains(searchString)
-                                         || s.Email.Contains(searchString));
-            }
+                ViewData["CurrentSort"] = sortOrder;
+                ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+                ViewData["CodeSortParm"] = sortOrder == "Code" ? "code_desc" : "Code";
+                ViewData["CurrentFilter"] = searchString;
+                ViewData["StatusFilter"] = statusFilter;
 
-            switch (sortOrder)
+                var filterOptions = new StudentFilterOptions
+                {
+                    SearchString = searchString,
+                    StatusFilter = statusFilter,
+                    SortOrder = sortOrder,
+                    PageNumber = pageNumber ?? 1,
+                    PageSize = 10
+                };
+
+                var students = await _studentService.GetStudentsAsync(filterOptions);
+                return View(students);
+            }
+            catch (Exception ex)
             {
-                case "name_desc":
-                    students = students.OrderByDescending(s => s.FullName);
-                    break;
-                case "Code":
-                    students = students.OrderBy(s => s.StudentCode);
-                    break;
-                case "code_desc":
-                    students = students.OrderByDescending(s => s.StudentCode);
-                    break;
-                default:
-                    students = students.OrderBy(s => s.FullName);
-                    break;
+                _logger.LogError(ex, "Error occurred while getting students list");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách sinh viên.";
+                return View(new PaginatedList<Student>(new List<Student>(), 0, 1, 10));
             }
-
-            int pageSize = 10;
-            return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: /admin/students/{id}
@@ -69,19 +63,22 @@ public class StudentController : Controller
                 return NotFound();
             }
 
-            var student = await _context.Students
-                .Include(s => s.Enrollments)
-                    .ThenInclude(e => e.Course)
-                .Include(s => s.AcademicRecords)
-                    .ThenInclude(ar => ar.Course)
-                .FirstOrDefaultAsync(m => m.StudentId == id);
-
-            if (student == null)
+            try
             {
-                return NotFound();
-            }
+                var student = await _studentService.GetStudentWithDetailsAsync(id.Value);
+                if (student == null)
+                {
+                    return NotFound();
+                }
 
-            return View(student);
+                return View(student);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting student details for id: {StudentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin sinh viên.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: /admin/students/create
@@ -91,44 +88,59 @@ public class StudentController : Controller
             return View();
         }
 
-        // POST: /admin/students
-        [HttpPost("")]
+        // POST: /admin/students/create
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("StudentCode,FullName,Email,PhoneNumber,DateOfBirth,Address,Gender,Major,AcademicYear,Notes")] Student student)
+        public async Task<IActionResult> Create(CreateStudentViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra mã sinh viên đã tồn tại
-                if (await _context.Students.AnyAsync(s => s.StudentCode == student.StudentCode))
+                try
                 {
-                    ModelState.AddModelError("StudentCode", "Mã sinh viên đã tồn tại.");
-                    return View(student);
-                }
+                    // Create Student object from ViewModel
+                    var student = new Student
+                    {
+                        StudentCode = model.StudentCode,
+                        FullName = model.FullName,
+                        Email = model.Email,
+                        PhoneNumber = model.PhoneNumber,
+                        Address = model.Address,
+                        DateOfBirth = model.DateOfBirth,
+                        Gender = model.Gender,
+                        Major = model.Major,
+                        AcademicYear = model.AcademicYear,
+                        Notes = model.Notes,
+                        IsActive = true
+                    };
 
-                // Kiểm tra email đã tồn tại
-                if (await _context.Students.AnyAsync(s => s.Email == student.Email))
+                    // Only create user account if username and password are provided
+                    if (!string.IsNullOrWhiteSpace(model.Username) && !string.IsNullOrWhiteSpace(model.Password))
+                    {
+                        await _studentService.CreateStudentAsync(student, model.Username, model.Password);
+                    }
+                    else
+                    {
+                        await _studentService.CreateStudentAsync(student);
+                    }
+                    TempData["SuccessMessage"] = "Tạo sinh viên thành công.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (InvalidOperationException ex)
                 {
-                    ModelState.AddModelError("Email", "Email đã tồn tại.");
-                    return View(student);
+                    ModelState.AddModelError("", ex.Message);
                 }
-
-                student.EnrollmentDate = DateTime.Now;
-                student.IsActive = true;
-                student.CreatedDate = DateTime.Now;
-
-                _context.Add(student);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Sinh viên mới được tạo: {student.FullName} ({student.StudentCode})");
-                TempData["SuccessMessage"] = "Sinh viên đã được tạo thành công.";
-
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while creating student");
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi tạo sinh viên.");
+                }
             }
-            return View(student);
+
+            return View(model);
         }
 
-        // GET: /admin/students/edit/{id}
-        [HttpGet("edit/{id}")]
+        // GET: /admin/students/{id}/edit
+        [HttpGet("{id}/edit")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -136,19 +148,28 @@ public class StudentController : Controller
                 return NotFound();
             }
 
-            var student = await _context.Students.FindAsync(id);
-            if (student == null)
+            try
             {
-                return NotFound();
+                var student = await _studentService.GetStudentByIdAsync(id.Value);
+                if (student == null)
+                {
+                    return NotFound();
+                }
+
+                return View(student);
             }
-            return View(student);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting student for edit: {StudentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin sinh viên.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // POST: /admin/students/{id}
-        [HttpPost("{id}")]
-        [HttpPut("{id}")]
+        // POST: /admin/students/{id}/edit
+        [HttpPost("{id}/edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("StudentId,StudentCode,FullName,Email,PhoneNumber,DateOfBirth,Address,Gender,Major,AcademicYear,Notes,IsActive")] Student student)
+        public async Task<IActionResult> Edit(int id, [Bind("StudentId,StudentCode,FullName,Email,PhoneNumber,Address,DateOfBirth,Gender,Major,AcademicYear,IsActive,Notes")] Student student)
         {
             if (id != student.StudentId)
             {
@@ -159,40 +180,28 @@ public class StudentController : Controller
             {
                 try
                 {
-                    // Kiểm tra mã sinh viên đã tồn tại (trừ chính nó)
-                    if (await _context.Students.AnyAsync(s => s.StudentCode == student.StudentCode && s.StudentId != id))
+                    var success = await _studentService.UpdateStudentAsync(id, student);
+                    if (success)
                     {
-                        ModelState.AddModelError("StudentCode", "Mã sinh viên đã tồn tại.");
-                        return View(student);
-                    }
-
-                    // Kiểm tra email đã tồn tại (trừ chính nó)
-                    if (await _context.Students.AnyAsync(s => s.Email == student.Email && s.StudentId != id))
-                    {
-                        ModelState.AddModelError("Email", "Email đã tồn tại.");
-                        return View(student);
-                    }
-
-                    student.UpdatedDate = DateTime.Now;
-                    _context.Update(student);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation($"Sinh viên được cập nhật: {student.FullName} ({student.StudentCode})");
-                    TempData["SuccessMessage"] = "Thông tin sinh viên đã được cập nhật thành công.";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!StudentExists(student.StudentId))
-                    {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Cập nhật sinh viên thành công.";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        return NotFound();
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while updating student: {StudentId}", id);
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật sinh viên.");
+                }
             }
+
             return View(student);
         }
 
@@ -205,40 +214,127 @@ public class StudentController : Controller
                 return NotFound();
             }
 
-            var student = await _context.Students
-                .FirstOrDefaultAsync(m => m.StudentId == id);
-            if (student == null)
+            try
             {
-                return NotFound();
-            }
+                var student = await _studentService.GetStudentByIdAsync(id.Value);
+                if (student == null)
+                {
+                    return NotFound();
+                }
 
-            return View(student);
+                return View(student);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting student for delete: {StudentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin sinh viên.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // DELETE: /admin/students/{id}
-        [HttpPost("delete/{id}")]
-        [HttpDelete("{id}")]
+        // POST: /admin/students/delete/{id}
+        [HttpPost("delete/{id}"), ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var student = await _context.Students.FindAsync(id);
-            if (student != null)
+            try
             {
-                // Soft delete - chỉ đánh dấu không active
-                student.IsActive = false;
-                student.UpdatedDate = DateTime.Now;
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Sinh viên bị xóa: {student.FullName} ({student.StudentCode})");
-                TempData["SuccessMessage"] = "Sinh viên đã được xóa thành công.";
+                var success = await _studentService.DeleteStudentAsync(id);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Xóa sinh viên thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy sinh viên để xóa.";
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Cannot delete student {StudentId}: {Message}", id, ex.Message);
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting student: {StudentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xóa sinh viên: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool StudentExists(int id)
+        // GET: /admin/students/{id}/enrollments
+        [HttpGet("{id}/enrollments")]
+        public async Task<IActionResult> Enrollments(int id)
         {
-            return _context.Students.Any(e => e.StudentId == id);
+            try
+            {
+                var student = await _studentService.GetStudentByIdAsync(id);
+                if (student == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy sinh viên.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var enrollments = await _enrollmentService.GetEnrollmentsByStudentAsync(id);
+                
+                ViewBag.Student = student;
+                return View(enrollments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting enrollments for student: {StudentId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách đăng ký.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: /admin/students/check-student-code
+        [HttpPost("check-student-code")]
+        public async Task<IActionResult> CheckStudentCode(string studentCode, int? excludeStudentId)
+        {
+            try
+            {
+                var exists = await _studentService.IsStudentCodeExistsAsync(studentCode, excludeStudentId);
+                return Json(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while checking student code: {StudentCode}", studentCode);
+                return Json(new { exists = false, error = "Có lỗi xảy ra khi kiểm tra mã sinh viên." });
+            }
+        }
+
+        // POST: /admin/students/check-email
+        [HttpPost("check-email")]
+        public async Task<IActionResult> CheckEmail(string email, int? excludeStudentId)
+        {
+            try
+            {
+                var exists = await _studentService.IsEmailExistsAsync(email, excludeStudentId);
+                return Json(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while checking email: {Email}", email);
+                return Json(new { exists = false, error = "Có lỗi xảy ra khi kiểm tra email." });
+            }
+        }
+
+        // GET: /admin/students/by-major/{major}
+        [HttpGet("by-major/{major}")]
+        public async Task<IActionResult> GetStudentsByMajor(string major)
+        {
+            try
+            {
+                var students = await _studentService.GetStudentsByMajorAsync(major);
+                return Json(students.Select(s => new { id = s.StudentId, name = s.FullName, code = s.StudentCode }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting students by major: {Major}", major);
+                return Json(new { error = "Có lỗi xảy ra khi tải danh sách sinh viên." });
+            }
         }
     }
 }

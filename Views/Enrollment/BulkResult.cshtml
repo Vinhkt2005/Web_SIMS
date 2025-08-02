@@ -1,0 +1,303 @@
+@model Web_SIMS.ViewModels.BulkEnrollmentResultViewModel
+
+@{
+    ViewData["Title"] = "Kết quả đăng ký hàng loạt";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/bulk-enrollment.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/enrollments">Quản lý Đăng ký</a></li>
+                <li class="breadcrumb-item"><a href="/admin/enrollments/bulk-create">Đăng ký hàng loạt</a></li>
+                <li class="breadcrumb-item active">Kết quả</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-bar me-2 text-primary"></i>Kết quả đăng ký hàng loạt
+        </h1>
+        <p class="text-muted mb-0">Tổng hợp kết quả xử lý đăng ký hàng loạt</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/admin/enrollments/bulk-create" class="btn btn-outline-primary">
+            <i class="fas fa-plus me-2"></i>Đăng ký hàng loạt mới
+        </a>
+        <a href="/admin/enrollments" class="btn btn-outline-secondary">
+            <i class="fas fa-list me-2"></i>Danh sách đăng ký
+        </a>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="results-summary">
+            <div class="summary-header">
+                <div class="summary-icon @(Model.SuccessCount == Model.TotalProcessed ? "success" : Model.FailureCount > 0 ? "warning" : "info")">
+                    @if (Model.SuccessCount == Model.TotalProcessed)
+                    {
+                        <i class="fas fa-check-circle"></i>
+                    }
+                    else if (Model.FailureCount > 0)
+                    {
+                        <i class="fas fa-exclamation-triangle"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-info-circle"></i>
+                    }
+                </div>
+                <div class="summary-content">
+                    <h3>
+                        @if (Model.SuccessCount == Model.TotalProcessed)
+                        {
+                            <span>Hoàn thành thành công!</span>
+                        }
+                        else if (Model.FailureCount > 0)
+                        {
+                            <span>Hoàn thành với một số lỗi</span>
+                        }
+                        else
+                        {
+                            <span>Xử lý hoàn tất</span>
+                        }
+                    </h3>
+                    <p>Đã xử lý @Model.TotalProcessed đăng ký với @Model.SuccessCount thành công, @Model.FailureCount thất bại, @Model.SkippedCount bỏ qua</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card-result stat-card-blue">
+            <div class="stat-card-body-result">
+                <div class="stat-icon-result">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stat-content-result">
+                    <div class="stat-number-result">@Model.TotalProcessed</div>
+                    <div class="stat-label-result">Tổng xử lý</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-result stat-card-green">
+            <div class="stat-card-body-result">
+                <div class="stat-icon-result">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content-result">
+                    <div class="stat-number-result">@Model.SuccessCount</div>
+                    <div class="stat-label-result">Thành công</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-result stat-card-red">
+            <div class="stat-card-body-result">
+                <div class="stat-icon-result">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-content-result">
+                    <div class="stat-number-result">@Model.FailureCount</div>
+                    <div class="stat-label-result">Thất bại</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-result stat-card-orange">
+            <div class="stat-card-body-result">
+                <div class="stat-icon-result">
+                    <i class="fas fa-skip-forward"></i>
+                </div>
+                <div class="stat-content-result">
+                    <div class="stat-number-result">@Model.SkippedCount</div>
+                    <div class="stat-label-result">Bỏ qua</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Results -->
+<div class="row">
+    <div class="col-12">
+        <div class="results-container">
+            <div class="results-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="results-title">
+                        <i class="fas fa-list-alt me-2"></i>
+                        Chi tiết kết quả
+                    </h4>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">
+                            Tất cả (@Model.TotalProcessed)
+                        </button>
+                        @if (Model.SuccessCount > 0)
+                        {
+                            <button class="filter-btn" data-filter="success">
+                                Thành công (@Model.SuccessCount)
+                            </button>
+                        }
+                        @if (Model.FailureCount > 0)
+                        {
+                            <button class="filter-btn" data-filter="failure">
+                                Thất bại (@Model.FailureCount)
+                            </button>
+                        }
+                        @if (Model.SkippedCount > 0)
+                        {
+                            <button class="filter-btn" data-filter="skipped">
+                                Bỏ qua (@Model.SkippedCount)
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="results-content">
+                @if (Model.Results.Any())
+                {
+                    <div class="results-grid">
+                        @foreach (var result in Model.Results)
+                        {
+                            <div class="result-card @(result.Success ? "success" : "failure")" 
+                                 data-status="@(result.Success ? "success" : "failure")">
+                                <div class="result-header">
+                                    <div class="result-avatar">
+                                        <span>@(result.StudentName?.Split(' ').FirstOrDefault()?.Substring(0, 1) + result.StudentName?.Split(' ').LastOrDefault()?.Substring(0, 1))</span>
+                                    </div>
+                                    <div class="result-info">
+                                        <h6 class="student-name">@result.StudentName</h6>
+                                        <p class="student-code">@result.StudentCode</p>
+                                    </div>
+                                    <div class="result-status">
+                                        @if (result.Success)
+                                        {
+                                            <span class="status-badge success">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Thành công</span>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge failure">
+                                                <i class="fas fa-times-circle"></i>
+                                                <span>Thất bại</span>
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="result-message">
+                                    <p>@result.Message</p>
+                                    @if (result.Success)
+                                    {
+                                        <small class="text-muted">
+                                            Trạng thái: 
+                                            @switch (result.Status)
+                                            {
+                                                case EnrollmentStatus.Approved:
+                                                    <span class="badge badge-success-soft">Đã duyệt</span>
+                                                    break;
+                                                case EnrollmentStatus.Pending:
+                                                    <span class="badge badge-warning-soft">Chờ duyệt</span>
+                                                    break;
+                                                case EnrollmentStatus.Rejected:
+                                                    <span class="badge badge-danger-soft">Từ chối</span>
+                                                    break;
+                                            }
+                                        </small>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h5>Không có kết quả</h5>
+                        <p>Không có dữ liệu kết quả để hiển thị.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const resultCards = document.querySelectorAll('.result-card');
+            
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    resultCards.forEach(card => {
+                        if (filter === 'all') {
+                            card.style.display = 'block';
+                        } else {
+                            const cardStatus = card.getAttribute('data-status');
+                            if (filter === 'skipped') {
+                                // Show cards that are not success and have "đã đăng ký" message
+                                const message = card.querySelector('.result-message p').textContent;
+                                const isSkipped = !card.classList.contains('success') && 
+                                                message.includes('đã đăng ký');
+                                card.style.display = isSkipped ? 'block' : 'none';
+                            } else {
+                                card.style.display = cardStatus === filter ? 'block' : 'none';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Auto-scroll to failed items if any
+            @if (Model.FailureCount > 0)
+            {
+                <text>
+                setTimeout(() => {
+                    const firstFailure = document.querySelector('.result-card.failure');
+                    if (firstFailure) {
+                        firstFailure.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 1000);
+                </text>
+            }
+            
+            // Add animation to result cards
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            resultCards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+}

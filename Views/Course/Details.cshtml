@@ -1,0 +1,477 @@
+@model Web_SIMS.Models.Course
+
+@{
+    ViewData["Title"] = "Chi tiết khóa học";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-details.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Khóa học</a></li>
+                <li class="breadcrumb-item active">Chi tiết khóa học</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-book-open me-2 text-primary"></i>Chi tiết khóa học
+        </h1>
+        <p class="text-muted mb-0">Thông tin chi tiết của khóa học @Model.CourseName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.CourseId" class="btn btn-warning">
+            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+        </a>
+    </div>
+</div>
+
+<!-- Course Profile Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm course-profile-card">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="course-avatar">
+                            <div class="avatar-circle">
+                                <span class="avatar-text">@Model.CourseCode.Substring(0, Math.Min(3, Model.CourseCode.Length)).ToUpper()</span>
+                            </div>
+                            <div class="status-indicator @(Model.IsActive ? "active" : "inactive")"></div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="course-info">
+                            <h2 class="course-name mb-1">@Model.CourseName</h2>
+                            <div class="course-meta">
+                                <span class="course-code">@Model.CourseCode</span>
+                                <span class="separator">•</span>
+                                <span class="course-credits">@Model.Credits tín chỉ</span>
+                                <span class="separator">•</span>
+                                <span class="course-semester">@Model.Semester - @Model.AcademicYear</span>
+                            </div>
+                            <div class="course-status mt-2">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge badge-success-soft">
+                                        <i class="fas fa-check-circle me-1"></i>Đang hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary-soft">
+                                        <i class="fas fa-pause-circle me-1"></i>Tạm dừng
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="course-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">@(Model.Enrollments?.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Approved) ?? 0)/@Model.MaxStudents</div>
+                                <div class="stat-label">Sinh viên</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Content -->
+<div class="row">
+    <!-- Course Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle text-primary me-2"></i>Thông tin khóa học
+                </h5>
+            </div>
+            <div class="card-body pt-3">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-id-card text-primary"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Mã khóa học</div>
+                            <div class="info-value">@Model.CourseCode</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-book text-info"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Tên khóa học</div>
+                            <div class="info-value">@Model.CourseName</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-graduation-cap text-success"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Số tín chỉ</div>
+                            <div class="info-value">
+                                <span class="badge badge-info-soft">@Model.Credits tín chỉ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-chalkboard-teacher text-warning"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Giảng viên</div>
+                            <div class="info-value">@Model.Instructor</div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="info-item full-width">
+                            <div class="info-icon">
+                                <i class="fas fa-align-left text-secondary"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Mô tả</div>
+                                <div class="info-value">@Model.Description</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Configuration -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs text-success me-2"></i>Cấu hình khóa học
+                </h5>
+            </div>
+            <div class="card-body pt-3">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-users text-primary"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Số sinh viên tối đa</div>
+                            <div class="info-value">@Model.MaxStudents sinh viên</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar text-info"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Học kỳ</div>
+                            <div class="info-value">@Model.Semester</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar-alt text-warning"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Năm học</div>
+                            <div class="info-value">@Model.AcademicYear</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-clock text-secondary"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Ngày tạo</div>
+                            <div class="info-value">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-edit text-warning"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Cập nhật lần cuối</div>
+                            <div class="info-value">@(Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>Thống kê khóa học
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body pt-3">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="stat-card stat-card-cyan">
+                            <div class="stat-card-body">
+                                <div class="stat-icon">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">@(Model.Enrollments?.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Approved) ?? 0)</div>
+                                    <div class="stat-label">Sinh viên đã đăng ký</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card stat-card-orange">
+                            <div class="stat-card-body">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">@(Model.Enrollments?.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Pending) ?? 0)</div>
+                                    <div class="stat-label">Chờ duyệt</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card stat-card-green">
+                            <div class="stat-card-body">
+                                <div class="stat-icon">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">@(Model.MaxStudents > 0 ? Math.Round((decimal)(Model.Enrollments?.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Approved) ?? 0) / Model.MaxStudents * 100, 1) : 0)%</div>
+                                    <div class="stat-label">Tỷ lệ lấp đầy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card stat-card-blue">
+                            <div class="stat-card-body">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">@Model.CreatedDate.ToString("dd/MM")</div>
+                                    <div class="stat-label">Ngày tạo</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Enrollments -->
+@if (Model.Enrollments != null && Model.Enrollments.Any())
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users text-primary me-2"></i>Danh sách sinh viên đăng ký
+                        </h5>
+                        <span class="badge badge-primary-soft">@Model.Enrollments.Count() sinh viên</span>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover modern-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <i class="fas fa-id-card me-2"></i>Mã SV
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-user me-2"></i>Họ tên
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-calendar me-2"></i>Ngày đăng ký
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-flag me-2"></i>Trạng thái
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var enrollment in Model.Enrollments.OrderByDescending(e => e.EnrollmentDate))
+                                {
+                                    <tr class="student-row">
+                                        <td>
+                                            <span class="student-code">@enrollment.Student?.StudentCode</span>
+                                        </td>
+                                        <td>
+                                            <div class="student-info">
+                                                <div class="student-name">@enrollment.Student?.FullName</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="enrollment-date">@enrollment.EnrollmentDate.ToString("dd/MM/yyyy")</span>
+                                            <small class="text-muted d-block">@enrollment.EnrollmentDate.ToString("HH:mm")</small>
+                                        </td>
+                                        <td>
+                                            @switch (enrollment.Status)
+                                            {
+                                                case Web_SIMS.Models.EnrollmentStatus.Approved:
+                                                    <span class="badge badge-success-soft">
+                                                        <i class="fas fa-check-circle me-1"></i>Đã duyệt
+                                                    </span>
+                                                    break;
+                                                case Web_SIMS.Models.EnrollmentStatus.Pending:
+                                                    <span class="badge badge-warning-soft">
+                                                        <i class="fas fa-clock me-1"></i>Chờ duyệt
+                                                    </span>
+                                                    break;
+                                                case Web_SIMS.Models.EnrollmentStatus.Rejected:
+                                                    <span class="badge badge-danger-soft">
+                                                        <i class="fas fa-times-circle me-1"></i>Từ chối
+                                                    </span>
+                                                    break;
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="empty-state">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có sinh viên đăng ký</h5>
+                        <p class="text-muted">Khóa học này chưa có sinh viên nào đăng ký.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Action Buttons -->
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="course-meta-info">
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    Tạo ngày: @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                </small>
+                @if (Model.UpdatedDate.HasValue)
+                {
+                    <small class="text-muted ms-3">
+                        <i class="fas fa-edit me-1"></i>
+                        Cập nhật: @Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                }
+            </div>
+            <div class="action-buttons">
+                <a asp-action="Delete" asp-route-id="@Model.CourseId" class="btn btn-outline-danger me-2" 
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa khóa học này?')">
+                    <i class="fas fa-trash me-2"></i>Xóa khóa học
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to student rows
+            const studentRows = document.querySelectorAll('.student-row');
+            studentRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateX(5px)';
+                    this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateX(0)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+
+            // Add click-to-copy functionality for course code
+            const courseCode = document.querySelector('.course-code');
+            if (courseCode) {
+                courseCode.style.cursor = 'pointer';
+                courseCode.title = 'Click để copy mã khóa học';
+                
+                courseCode.addEventListener('click', function() {
+                    navigator.clipboard.writeText(this.textContent).then(() => {
+                        // Show toast notification
+                        const toast = document.createElement('div');
+                        toast.className = 'toast-notification';
+                        toast.textContent = 'Đã copy mã khóa học!';
+                        document.body.appendChild(toast);
+                        
+                        setTimeout(() => {
+                            toast.remove();
+                        }, 2000);
+                    });
+                });
+            }
+
+            // Animate stat cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.stat-card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+}

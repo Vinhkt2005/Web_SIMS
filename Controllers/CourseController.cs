@@ -1,63 +1,78 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using Web_SIMS.Data;
+using Web_SIMS.DTOs;
+using Web_SIMS.Interfaces.Services;
 using Web_SIMS.Models;
 using Web_SIMS.ViewModels;
 
 namespace Web_SIMS.Controllers
 {
-[Authorize(Roles = "Admin,Faculty")]
-[Route("admin/courses")]
-public class CourseController : Controller
+    [Authorize(Roles = "Admin,Faculty")]
+    [Route("admin/courses")]
+    public class CourseController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ICourseService _courseService;
+        private readonly IFacultyService _facultyService;
+        private readonly IEnrollmentService _enrollmentService;
         private readonly ILogger<CourseController> _logger;
 
-        public CourseController(AppDbContext context, ILogger<CourseController> logger)
+        public CourseController(ICourseService courseService, IFacultyService facultyService, IEnrollmentService enrollmentService, ILogger<CourseController> logger)
         {
-            _context = context;
+            _courseService = courseService;
+            _facultyService = facultyService;
+            _enrollmentService = enrollmentService;
             _logger = logger;
+        }
+
+        private async Task LoadFacultiesAsync()
+        {
+            try
+            {
+                var filterOptions = new FacultyFilterOptions
+                {
+                    StatusFilter = "active",
+                    PageSize = 1000 // Load all active faculties
+                };
+                var paginatedFaculties = await _facultyService.GetFacultiesAsync(filterOptions);
+                ViewBag.Faculties = paginatedFaculties.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading faculties for dropdown");
+                ViewBag.Faculties = new List<Faculty>();
+            }
         }
 
         // GET: /admin/courses
         [HttpGet("")]
-        public async Task<IActionResult> Index(string searchString, string sortOrder, int? pageNumber)
+        public async Task<IActionResult> Index(string searchString, string statusFilter, string sortOrder, int? pageNumber)
         {
-            ViewData["CurrentSort"] = sortOrder;
-            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            ViewData["CodeSortParm"] = sortOrder == "Code" ? "code_desc" : "Code";
-            ViewData["CurrentFilter"] = searchString;
-
-            var courses = from c in _context.Courses
-                          select c;
-
-            if (!String.IsNullOrEmpty(searchString))
+            try
             {
-                courses = courses.Where(c => c.CourseName.Contains(searchString)
-                                       || c.CourseCode.Contains(searchString)
-                                       || c.Instructor.Contains(searchString));
-            }
+                ViewData["CurrentSort"] = sortOrder;
+                ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+                ViewData["CodeSortParm"] = sortOrder == "Code" ? "code_desc" : "Code";
+                ViewData["CurrentFilter"] = searchString;
+                ViewData["StatusFilter"] = statusFilter;
 
-            switch (sortOrder)
+                var filterOptions = new CourseFilterOptions
+                {
+                    SearchString = searchString,
+                    StatusFilter = statusFilter,
+                    SortOrder = sortOrder,
+                    PageNumber = pageNumber ?? 1,
+                    PageSize = 10
+                };
+
+                var courses = await _courseService.GetCoursesAsync(filterOptions);
+                return View(courses);
+            }
+            catch (Exception ex)
             {
-                case "name_desc":
-                    courses = courses.OrderByDescending(c => c.CourseName);
-                    break;
-                case "Code":
-                    courses = courses.OrderBy(c => c.CourseCode);
-                    break;
-                case "code_desc":
-                    courses = courses.OrderByDescending(c => c.CourseCode);
-                    break;
-                default:
-                    courses = courses.OrderBy(c => c.CourseName);
-                    break;
+                _logger.LogError(ex, "Error occurred while getting courses list");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách khóa học.";
+                return View(new PaginatedList<Course>(new List<Course>(), 0, 1, 10));
             }
-
-            int pageSize = 10;
-            return View(await PaginatedList<Course>.CreateAsync(courses.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: /admin/courses/{id}
@@ -69,58 +84,62 @@ public class CourseController : Controller
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .Include(c => c.Enrollments)
-                    .ThenInclude(e => e.Student)
-                .Include(c => c.AcademicRecords)
-                    .ThenInclude(ar => ar.Student)
-                .FirstOrDefaultAsync(m => m.CourseId == id);
-
-            if (course == null)
+            try
             {
-                return NotFound();
-            }
+                var course = await _courseService.GetCourseWithDetailsAsync(id.Value);
+                if (course == null)
+                {
+                    return NotFound();
+                }
 
-            return View(course);
+                return View(course);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting course details for id: {CourseId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin khóa học.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: /admin/courses/create
         [HttpGet("create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await LoadFacultiesAsync();
             return View();
         }
 
-        // POST: /admin/courses
-        [HttpPost("")]
+        // POST: /admin/courses/create
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CourseCode,CourseName,Description,Credits,MaxStudents,Semester,AcademicYear,Instructor")] Course course)
+        public async Task<IActionResult> Create([Bind("CourseCode,CourseName,Description,Credits,Semester,AcademicYear,Instructor,MaxStudents,IsActive,FacultyId")] Course course)
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra mã khóa học đã tồn tại
-                if (await _context.Courses.AnyAsync(c => c.CourseCode == course.CourseCode))
+                try
                 {
-                    ModelState.AddModelError("CourseCode", "Mã khóa học đã tồn tại.");
-                    return View(course);
+                    await _courseService.CreateCourseAsync(course);
+                    TempData["SuccessMessage"] = "Tạo khóa học thành công.";
+                    return RedirectToAction(nameof(Index));
                 }
-
-                course.IsActive = true;
-                course.CreatedDate = DateTime.Now;
-
-                _context.Add(course);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Khóa học mới được tạo: {course.CourseName} ({course.CourseCode})");
-                TempData["SuccessMessage"] = "Khóa học đã được tạo thành công.";
-
-                return RedirectToAction(nameof(Index));
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while creating course");
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi tạo khóa học.");
+                }
             }
+
+            await LoadFacultiesAsync();
             return View(course);
         }
 
-        // GET: /admin/courses/edit/{id}
-        [HttpGet("edit/{id}")]
+        // GET: /admin/courses/{id}/edit
+        [HttpGet("{id}/edit")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -128,19 +147,29 @@ public class CourseController : Controller
                 return NotFound();
             }
 
-            var course = await _context.Courses.FindAsync(id);
-            if (course == null)
+            try
             {
-                return NotFound();
+                var course = await _courseService.GetCourseByIdAsync(id.Value);
+                if (course == null)
+                {
+                    return NotFound();
+                }
+
+                await LoadFacultiesAsync();
+                return View(course);
             }
-            return View(course);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting course for edit: {CourseId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin khóa học.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // POST: /admin/courses/{id}
-        [HttpPost("{id}")]
-        [HttpPut("{id}")]
+        // POST: /admin/courses/{id}/edit
+        [HttpPost("{id}/edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CourseId,CourseCode,CourseName,Description,Credits,MaxStudents,Semester,AcademicYear,Instructor,IsActive")] Course course)
+        public async Task<IActionResult> Edit(int id, [Bind("CourseId,CourseCode,CourseName,Description,Credits,Semester,AcademicYear,Instructor,MaxStudents,IsActive,FacultyId")] Course course)
         {
             if (id != course.CourseId)
             {
@@ -151,33 +180,29 @@ public class CourseController : Controller
             {
                 try
                 {
-                    // Kiểm tra mã khóa học đã tồn tại (trừ chính nó)
-                    if (await _context.Courses.AnyAsync(c => c.CourseCode == course.CourseCode && c.CourseId != id))
+                    var success = await _courseService.UpdateCourseAsync(id, course);
+                    if (success)
                     {
-                        ModelState.AddModelError("CourseCode", "Mã khóa học đã tồn tại.");
-                        return View(course);
-                    }
-
-                    course.UpdatedDate = DateTime.Now;
-                    _context.Update(course);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation($"Khóa học được cập nhật: {course.CourseName} ({course.CourseCode})");
-                    TempData["SuccessMessage"] = "Thông tin khóa học đã được cập nhật thành công.";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CourseExists(course.CourseId))
-                    {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Cập nhật khóa học thành công.";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        throw;
+                        return NotFound();
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while updating course: {CourseId}", id);
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật khóa học.");
+                }
             }
+
+            await LoadFacultiesAsync();
             return View(course);
         }
 
@@ -190,48 +215,137 @@ public class CourseController : Controller
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .FirstOrDefaultAsync(m => m.CourseId == id);
-            if (course == null)
+            try
             {
-                return NotFound();
-            }
+                var course = await _courseService.GetCourseByIdAsync(id.Value);
+                if (course == null)
+                {
+                    return NotFound();
+                }
 
-            return View(course);
+                return View(course);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting course for delete: {CourseId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải thông tin khóa học.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // DELETE: /admin/courses/{id}
-        [HttpPost("delete/{id}")]
-        [HttpDelete("{id}")]
+        // POST: /admin/courses/delete/{id}
+        [HttpPost("delete/{id}"), ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
-            if (course != null)
+            try
             {
-                // Kiểm tra xem có sinh viên nào đang đăng ký khóa học này không
-                var hasEnrollments = await _context.Enrollments.AnyAsync(e => e.CourseId == id);
-                if (hasEnrollments)
+                var success = await _courseService.DeleteCourseAsync(id);
+                if (success)
                 {
-                    TempData["ErrorMessage"] = "Không thể xóa khóa học vì đã có sinh viên đăng ký.";
-                    return RedirectToAction(nameof(Index));
+                    TempData["SuccessMessage"] = "Xóa khóa học thành công.";
                 }
-
-                // Soft delete - chỉ đánh dấu không active
-                course.IsActive = false;
-                course.UpdatedDate = DateTime.Now;
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Khóa học bị xóa: {course.CourseName} ({course.CourseCode})");
-                TempData["SuccessMessage"] = "Khóa học đã được xóa thành công.";
+                else
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy khóa học để xóa.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting course: {CourseId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xóa khóa học.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CourseExists(int id)
+        // POST: /admin/courses/check-course-code
+        [HttpPost("check-course-code")]
+        public async Task<IActionResult> CheckCourseCode(string courseCode, int? excludeCourseId)
         {
-            return _context.Courses.Any(e => e.CourseId == id);
+            try
+            {
+                var exists = await _courseService.IsCourseCodeExistsAsync(courseCode, excludeCourseId);
+                return Json(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while checking course code: {CourseCode}", courseCode);
+                return Json(new { exists = false, error = "Có lỗi xảy ra khi kiểm tra mã khóa học." });
+            }
+        }
+
+        // GET: /admin/courses/by-faculty/{facultyId}
+        [HttpGet("by-faculty/{facultyId}")]
+        public async Task<IActionResult> GetCoursesByFaculty(int facultyId)
+        {
+            try
+            {
+                var courses = await _courseService.GetCoursesByFacultyAsync(facultyId);
+                return Json(courses.Select(c => new { id = c.CourseId, name = c.CourseName, code = c.CourseCode }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting courses by faculty: {FacultyId}", facultyId);
+                return Json(new { error = "Có lỗi xảy ra khi tải danh sách khóa học." });
+            }
+        }
+
+        // GET: /admin/courses/{id}/enrollments
+        [HttpGet("{id}/enrollments")]
+        public async Task<IActionResult> Enrollments(int id, string searchString, string statusFilter, int? pageNumber)
+        {
+            try
+            {
+                // Get course information
+                var course = await _courseService.GetCourseByIdAsync(id);
+                if (course == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy khóa học.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewData["CourseId"] = id;
+                ViewData["CourseName"] = course.CourseName;
+                ViewData["CourseCode"] = course.CourseCode;
+                ViewData["CurrentFilter"] = searchString;
+                ViewData["StatusFilter"] = statusFilter;
+
+                // Get enrollments for this course
+                var enrollments = await _enrollmentService.GetEnrollmentsByCourseAsync(id);
+                
+                // Apply filters
+                if (!string.IsNullOrEmpty(searchString))
+                {
+                    enrollments = enrollments.Where(e => 
+                        (e.Student != null && e.Student.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
+                        (e.Student != null && e.Student.StudentCode.Contains(searchString, StringComparison.OrdinalIgnoreCase)));
+                }
+
+                if (!string.IsNullOrEmpty(statusFilter))
+                {
+                    if (Enum.TryParse<EnrollmentStatus>(statusFilter, out var status))
+                    {
+                        enrollments = enrollments.Where(e => e.Status == status);
+                    }
+                }
+
+                // Apply pagination
+                const int pageSize = 10;
+                var enrollmentsList = enrollments.ToList();
+                var totalCount = enrollmentsList.Count;
+                var items = enrollmentsList.Skip(((pageNumber ?? 1) - 1) * pageSize).Take(pageSize).ToList();
+                
+                var paginatedEnrollments = new PaginatedList<Enrollment>(items, totalCount, pageNumber ?? 1, pageSize);
+
+                return View(paginatedEnrollments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting enrollments for course: {CourseId}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách sinh viên.";
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

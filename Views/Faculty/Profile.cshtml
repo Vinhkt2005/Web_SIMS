@@ -1,0 +1,607 @@
+@model Web_SIMS.Models.User
+@{
+    ViewData["Title"] = "Hồ sơ Giảng viên";
+}
+
+<div class="container-fluid py-4">
+    <!-- Modern Header with Profile Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="profile-header-card">
+                <div class="profile-background"></div>
+                <div class="profile-content">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            <div class="profile-avatar-container">
+                                <div class="profile-avatar">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div class="avatar-status">
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="status-indicator active"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-indicator inactive"></span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="profile-info">
+                                <h1 class="profile-name">@(Model.FullName ?? "Chưa cập nhật")</h1>
+                                <p class="profile-title">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                                    @(Model.Role?.RoleName ?? "Giảng viên")
+                                </p>
+                                <div class="profile-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        @Model.Email
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-user me-1"></i>
+                                        @Model.Username
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Tham gia từ @Model.CreatedDate.ToString("MM/yyyy")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Cards Grid -->
+    <div class="row g-4">
+        <!-- Personal Information Card -->
+        <div class="col-lg-8">
+            <div class="info-card">
+                <div class="card-header-modern">
+                    <div class="header-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="header-content">
+                        <h5 class="card-title">Thông tin cá nhân</h5>
+                        <p class="card-subtitle">Chi tiết tài khoản và thông tin liên hệ</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-id-badge"></i>
+                                Tên đăng nhập
+                            </div>
+                            <div class="info-value">@Model.Username</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-user"></i>
+                                Họ và tên
+                            </div>
+                            <div class="info-value">@(Model.FullName ?? "Chưa cập nhật")</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                            </div>
+                            <div class="info-value">@Model.Email</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-shield-alt"></i>
+                                Vai trò
+                            </div>
+                            <div class="info-value">
+                                <span class="role-badge">@(Model.Role?.RoleName ?? "Giảng viên")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status & Activity Card -->
+        <div class="col-lg-4">
+            <div class="info-card">
+                <div class="card-header-modern">
+                    <div class="header-icon status-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="header-content">
+                        <h5 class="card-title">Trạng thái & Hoạt động</h5>
+                        <p class="card-subtitle">Thông tin tài khoản</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-label">Trạng thái tài khoản</div>
+                            <div class="status-value">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="status-badge active">
+                                        <i class="fas fa-check-circle"></i>
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge inactive">
+                                        <i class="fas fa-times-circle"></i>
+                                        Không hoạt động
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">Ngày tạo tài khoản</div>
+                            <div class="status-value">
+                                <span class="date-badge">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    @Model.CreatedDate.ToString("dd/MM/yyyy")
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">Cập nhật lần cuối</div>
+                            <div class="status-value">
+                                <span class="date-badge">
+                                    <i class="fas fa-clock"></i>
+                                    @(Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="action-buttons">
+                <a class="btn btn-primary-modern" asp-action="Home">
+                    <i class="fas fa-home me-2"></i>
+                    Về trang chủ
+                </a>
+                <button class="btn btn-outline-modern" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>
+                    In hồ sơ
+                </button>
+                <button class="btn btn-outline-modern" onclick="exportProfile()">
+                    <i class="fas fa-download me-2"></i>
+                    Xuất PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 🎨 Modern Faculty Profile Styles */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    --card-hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Profile Header Card */
+.profile-header-card {
+    position: relative;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.profile-header-card:hover {
+    box-shadow: var(--card-hover-shadow);
+    transform: translateY(-2px);
+}
+
+.profile-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: var(--primary-gradient);
+    opacity: 0.9;
+}
+
+.profile-content {
+    position: relative;
+    padding: 2rem;
+    z-index: 2;
+}
+
+.profile-avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #667eea;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 4px solid white;
+    transition: var(--transition);
+}
+
+.profile-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-status {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+}
+
+.status-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid white;
+    display: block;
+}
+
+.status-indicator.active {
+    background: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+.status-indicator.inactive {
+    background: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+.profile-info {
+    padding-left: 2rem;
+}
+
+.profile-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.profile-title {
+    font-size: 1.25rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.meta-item {
+    color: #6b7280;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.meta-item i {
+    color: #667eea;
+}
+
+/* Information Cards */
+.info-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    border: none;
+    transition: var(--transition);
+    height: 100%;
+}
+
+.info-card:hover {
+    box-shadow: var(--card-hover-shadow);
+    transform: translateY(-2px);
+}
+
+.card-header-modern {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: none;
+    padding: 1.5rem;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-gradient);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.header-icon.status-icon {
+    background: var(--success-gradient);
+}
+
+.header-content h5 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.header-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.info-item {
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    transition: var(--transition);
+}
+
+.info-item:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+}
+
+.info-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-label i {
+    color: #667eea;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.role-badge {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Status Grid */
+.status-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.status-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+.status-item:hover {
+    background: #f1f5f9;
+    transform: scale(1.02);
+}
+
+.status-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+.status-value {
+    display: flex;
+    justify-content: center;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-badge.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.status-badge.inactive {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.date-badge {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary-modern {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    color: white;
+    transition: var(--transition);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+.btn-outline-modern {
+    background: white;
+    border: 2px solid #e5e7eb;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    color: #374151;
+    transition: var(--transition);
+}
+
+.btn-outline-modern:hover {
+    background: #f9fafb;
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+}
+
+/* Print Styles */
+@@media print {
+    .action-buttons, .card-header-modern {
+        display: none !important;
+    }
+    
+    .profile-header-card {
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .profile-background {
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .profile-content {
+        padding: 1.5rem;
+    }
+    
+    .profile-info {
+        padding-left: 0;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .profile-name {
+        font-size: 2rem;
+    }
+    
+    .profile-meta {
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+}
+
+@@media (max-width: 576px) {
+    .profile-name {
+        font-size: 1.75rem;
+    }
+    
+    .card-header-modern {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .header-content h5 {
+        font-size: 1.1rem;
+    }
+}
+</style>
+
+<script>
+function exportProfile() {
+    // Placeholder for PDF export functionality
+    alert('Tính năng xuất PDF sẽ được phát triển trong phiên bản tiếp theo.');
+}
+</script>

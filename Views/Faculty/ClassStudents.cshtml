@@ -3,7 +3,7 @@
     ViewData["Title"] = "Danh sách sinh viên";
 }
 <div class="container-fluid">
-    <h1 class="h3 mb-4">Sinh viên lớp @Model.Course.CourseName</h1>
+    <h1 class="h3 mb-4">Sinh viên lớp @Model.Course?.CourseName</h1>
     <div class="card shadow">
         <div class="card-body">
             <table class="table table-hover">

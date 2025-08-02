@@ -6,49 +6,60 @@
     <title>@ViewData["Title"] - Web SIMS</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container">
-                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                <span class="navbar-brand fw-bold">
                     <i class="fas fa-graduation-cap me-2"></i>
                     Web SIMS
-                </a>
+                </span>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">
-                                <i class="fas fa-home me-1"></i>Trang chủ
-                            </a>
-                        </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                    <a class="nav-link active" asp-controller="Dashboard" asp-action="Index">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                                     </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-cogs me-2"></i>Quản lý
+                                    </a>
+                                    <ul class="dropdown-menu shadow">
+                                        <li><a class="dropdown-item" href="/admin/students"><i class="fas fa-users me-2"></i>Sinh viên</a></li>
+                                        <li><a class="dropdown-item" href="/admin/faculties"><i class="fas fa-chalkboard-teacher me-2"></i>Giảng viên</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Course" asp-action="Index"><i class="fas fa-book me-2"></i>Khóa học</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Enrollment" asp-action="Index"><i class="fas fa-user-graduate me-2"></i>Đăng ký</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Điểm số</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="/admin/users"><i class="fas fa-user-cog me-2"></i>Quản lý người dùng</a></li>
+                                    </ul>
                                 </li>
                             }
                             @if (User.IsInRole("Faculty"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Faculty" asp-action="Home">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i>Trang chủ
+                                    <a class="nav-link active" asp-controller="Faculty" asp-action="Home">
+                                        <i class="fas fa-home me-2"></i>Trang chủ
                                     </a>
                                 </li>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i>Giảng dạy
+                                        <i class="fas fa-chalkboard-teacher me-2"></i>Giảng dạy
                                     </a>
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu shadow">
                                         <li><a class="dropdown-item" asp-controller="Faculty" asp-action="MyClasses"><i class="fas fa-book me-2"></i>Lớp của tôi</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Báo cáo điểm số</a></li>
@@ -58,41 +69,19 @@
                             @if (User.IsInRole("Student"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="StudentPortal" asp-action="Home">
-                                        <i class="fas fa-user-graduate me-1"></i>Trang chủ
+                                    <a class="nav-link active" asp-controller="StudentPortal" asp-action="Home">
+                                        <i class="fas fa-home me-2"></i>Trang chủ
                                     </a>
-                                </li>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-user-graduate me-1"></i>Học tập
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="StudentPortal" asp-action="Courses"><i class="fas fa-book me-2"></i>Môn học của tôi</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Điểm số</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" asp-controller="StudentPortal" asp-action="Profile"><i class="fas fa-user me-2"></i>Hồ sơ</a></li>
-                                    </ul>
                                 </li>
                             }
-                            @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-cogs me-1"></i>Quản lý
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="Student" asp-action="Index"><i class="fas fa-users me-2"></i>Sinh viên</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Course" asp-action="Index"><i class="fas fa-book me-2"></i>Khóa học</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Enrollment" asp-action="Index"><i class="fas fa-user-graduate me-2"></i>Đăng ký</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Điểm số</a></li>
-                                        @if (User.IsInRole("Admin"))
-                                        {
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" asp-controller="User" asp-action="Index"><i class="fas fa-user-cog me-2"></i>Quản lý người dùng</a></li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-home me-2"></i>Trang chủ
+                                </a>
+                            </li>
                         }
                     </ul>
                     <ul class="navbar-nav">
@@ -107,6 +96,10 @@
                                         @if (User.IsInRole("Student"))
                                         {
                                             <a class="dropdown-item" asp-controller="StudentPortal" asp-action="Profile"><i class="fas fa-user me-2"></i>Hồ sơ</a>
+                                        }
+                                        else if (User.IsInRole("Faculty"))
+                                        {
+                                            <a class="dropdown-item" asp-controller="Faculty" asp-action="Profile"><i class="fas fa-user me-2"></i>Hồ sơ</a>
                                         }
                                         else
                                         {
@@ -167,7 +160,7 @@
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html> 

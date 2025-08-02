@@ -1,0 +1,228 @@
+@model Web_SIMS.ViewModels.CreateFacultyViewModel
+
+@{
+    ViewData["Title"] = "Thêm Giảng viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/faculties">Quản lý Giảng viên</a></li>
+                <li class="breadcrumb-item active">Thêm mới</li>
+            </ol>
+        </nav>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Quay lại
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Thêm Giảng viên mới
+                </h5>
+            </div>
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                <div class="card-body p-4">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" role="alert"></div>
+
+                    <!-- Progress Steps -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="step-item active">
+                                    <div class="step-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <span class="step-label">Thông tin cơ bản</span>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item">
+                                    <div class="step-icon">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    <span class="step-label">Thông tin công việc</span>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item">
+                                    <div class="step-icon">
+                                        <i class="fas fa-key"></i>
+                                    </div>
+                                    <span class="step-label">Tài khoản</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Thông tin cơ bản -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h6 class="form-section-title">
+                                    <i class="fas fa-user me-2"></i>Thông tin cơ bản
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label asp-for="FacultyCode" class="form-label required"></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-id-card"></i>
+                                        </span>
+                                        <input asp-for="FacultyCode" class="form-control" placeholder="Ví dụ: GV001" required />
+                                    </div>
+                                    <span asp-validation-for="FacultyCode" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label required"></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                        <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" required />
+                                    </div>
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label required"></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <input asp-for="Email" class="form-control" type="email" placeholder="email@example.com" required />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="PhoneNumber" class="control-label"></label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="DateOfBirth" class="control-label"></label>
+                                    <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Gender" class="control-label"></label>
+                                    <select asp-for="Gender" class="form-control">
+                                        <option value="">-- Chọn giới tính --</option>
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin học thuật và tài khoản -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-graduation-cap"></i> Thông tin học thuật
+                                </h5>
+
+                                <div class="form-group">
+                                    <label asp-for="Department" class="control-label"></label>
+                                    <input asp-for="Department" class="form-control" placeholder="Ví dụ: Khoa Công nghệ thông tin" />
+                                    <span asp-validation-for="Department" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Specialization" class="control-label"></label>
+                                    <input asp-for="Specialization" class="form-control" placeholder="Ví dụ: Lập trình, Cơ sở dữ liệu" />
+                                    <span asp-validation-for="Specialization" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Address" class="control-label"></label>
+                                    <textarea asp-for="Address" class="form-control" rows="3" placeholder="Địa chỉ liên hệ"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <h5 class="mb-3">
+                                    <i class="fas fa-key"></i> Tài khoản đăng nhập
+                                </h5>
+
+                                <div class="form-group">
+                                    <label asp-for="Username" class="control-label"></label>
+                                    <input asp-for="Username" class="form-control" placeholder="Tên đăng nhập" />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Password" class="control-label"></label>
+                                    <input asp-for="Password" class="form-control" placeholder="Mật khẩu" />
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="ConfirmPassword" class="control-label"></label>
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Xác nhận mật khẩu" />
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Lưu
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary ml-2">
+                                    <i class="fas fa-times"></i> Hủy
+                                </a>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Các trường có dấu * là bắt buộc
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Validate username and password dependency
+            $('#Username, #Password').on('input', function() {
+                var username = $('#Username').val();
+                var password = $('#Password').val();
+                
+                if (username && !password) {
+                    $('#Password').addClass('is-invalid');
+                    if (!$('#Password').next('.invalid-feedback').length) {
+                        $('#Password').after('<div class="invalid-feedback">Mật khẩu là bắt buộc khi có tên đăng nhập</div>');
+                    }
+                } else {
+                    $('#Password').removeClass('is-invalid');
+                    $('#Password').next('.invalid-feedback').remove();
+                }
+            });
+        });
+    </script>
+}

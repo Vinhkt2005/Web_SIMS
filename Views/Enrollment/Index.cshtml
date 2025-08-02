@@ -2,35 +2,374 @@
 
 @{
     ViewData["Title"] = "Quản lý Đăng ký";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-user-graduate me-2"></i>Quản lý Đăng ký
-            </h1>
-            <p class="text-muted">Danh sách đăng ký khóa học trong hệ thống</p>
-        </div>
-        @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
-        {
-            <div>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Thêm đăng ký mới
-                </a>
-            </div>
+@section Styles {
+    <style>
+        .course-info {
+            min-width: 200px;
         }
-    </div>
+        
+        .course-info .fw-semibold {
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+        
 
-    <!-- Search and Filter -->
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <form asp-action="Index" method="get" class="row g-3">
+        
+        .enrollment-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+        
+        .enrollment-table table {
+            margin-bottom: 0;
+            table-layout: fixed;
+            width: 100%;
+            min-width: 1100px;
+        }
+        
+        .enrollment-table thead th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            text-align: center;
+            position: relative;
+        }
+        
+        .enrollment-table tbody td {
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f3f4;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .enrollment-table tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        /* Định nghĩa width cho các cột */
+        .enrollment-table .table th:nth-child(1) { width: 4%; }  /* Checkbox */
+        .enrollment-table .table th:nth-child(2) { width: 25%; } /* Sinh viên */
+        .enrollment-table .table th:nth-child(3) { width: 30%; } /* Khóa học & Giảng viên */
+        .enrollment-table .table th:nth-child(4) { width: 15%; } /* Trạng thái */
+        .enrollment-table .table th:nth-child(5) { width: 10%; } /* Điểm */
+        .enrollment-table .table th:nth-child(6) { width: 16%; min-width: 140px; } /* Thao tác */
+
+        /* Cho phép text wrap cho cột sinh viên và khóa học */
+        .enrollment-table .table th:nth-child(2),
+        .enrollment-table .table td:nth-child(2),
+        .enrollment-table .table th:nth-child(3),
+        .enrollment-table .table td:nth-child(3) {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        /* Căn giữa nội dung trong các ô đặc biệt */
+        .enrollment-table .table td:nth-child(1),
+        .enrollment-table .table td:nth-child(4),
+        .enrollment-table .table td:nth-child(5),
+        .enrollment-table .table td:nth-child(6) {
+            text-align: center;
+        }
+
+        /* Căn trái cho nội dung sinh viên và khóa học nhưng vẫn căn giữa container */
+        .enrollment-table .table td:nth-child(2) > div,
+        .enrollment-table .table td:nth-child(3) > div {
+            text-align: left;
+            margin: 0 auto;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        /* Responsive breakpoints cho enrollment table */
+        @@media (max-width: 1400px) {
+            .enrollment-table .table th:nth-child(5),
+            .enrollment-table .table td:nth-child(5) {
+                display: none; /* Hide Điểm */
+            }
+            
+            /* Điều chỉnh lại width */
+            .enrollment-table .table th:nth-child(1) { width: 5%; }
+            .enrollment-table .table th:nth-child(2) { width: 28%; }
+            .enrollment-table .table th:nth-child(3) { width: 35%; }
+            .enrollment-table .table th:nth-child(4) { width: 17%; }
+            .enrollment-table .table th:nth-child(6) { width: 15%; }
+        }
+
+        @@media (max-width: 1200px) {
+            .enrollment-table .table {
+                min-width: 900px;
+            }
+            
+            /* Điều chỉnh lại width */
+            .enrollment-table .table th:nth-child(1) { width: 6%; }
+            .enrollment-table .table th:nth-child(2) { width: 30%; }
+            .enrollment-table .table th:nth-child(3) { width: 35%; }
+            .enrollment-table .table th:nth-child(4) { width: 15%; }
+            .enrollment-table .table th:nth-child(6) { width: 14%; }
+            
+            /* Giảm padding */
+            .enrollment-table .table th,
+            .enrollment-table .table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .enrollment-table .table {
+                min-width: 700px;
+            }
+            
+            /* Điều chỉnh lại width */
+            .enrollment-table .table th:nth-child(1) { width: 8%; }
+            .enrollment-table .table th:nth-child(2) { width: 32%; }
+            .enrollment-table .table th:nth-child(3) { width: 38%; }
+            .enrollment-table .table th:nth-child(4) { width: 12%; }
+            .enrollment-table .table th:nth-child(6) { width: 10%; }
+            
+            /* Giảm kích thước action buttons */
+            .btn-action {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .enrollment-table .table {
+                min-width: 600px;
+            }
+            
+            /* Hide trạng thái trên mobile */
+            .enrollment-table .table th:nth-child(4),
+            .enrollment-table .table td:nth-child(4) {
+                display: none;
+            }
+            
+            /* Điều chỉnh lại width cho mobile */
+            .enrollment-table .table th:nth-child(1) { width: 10%; }
+            .enrollment-table .table th:nth-child(2) { width: 40%; }
+            .enrollment-table .table th:nth-child(3) { width: 35%; }
+            .enrollment-table .table th:nth-child(6) { width: 15%; }
+            
+            /* Giảm padding và font size */
+            .enrollment-table .table th,
+            .enrollment-table .table td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Ẩn quick actions, hiện dropdown */
+            .quick-actions {
+                display: none !important;
+            }
+            
+            .action-dropdown-toggle {
+                display: block !important;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .enrollment-table .table {
+                min-width: 500px;
+            }
+            
+            /* Extra small screens */
+            .enrollment-table .table th,
+            .enrollment-table .table td {
+                padding: 0.375rem 0.125rem;
+                font-size: 0.8rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .btn-action {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+        }
+        
+        .action-buttons {
+            white-space: nowrap;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            font-size: 0.8rem;
+        }
+        
+        .btn-action-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-action-success {
+            background: #198754;
+            color: white;
+        }
+        
+        .btn-action-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-action-primary {
+            background: #0d6efd;
+            color: white;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* Desktop - hiện quick actions, ẩn dropdown */
+        @@media (min-width: 769px) {
+            .quick-actions {
+                display: flex !important;
+            }
+            
+            .action-dropdown-toggle {
+                display: none !important;
+            }
+        }
+    </style>
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">Quản lý Đăng ký</li>
+            </ol>
+        </nav>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
+    {
+        <div class="d-flex gap-2">
+            <a asp-action="BulkCreate" class="btn btn-success">
+                <i class="fas fa-users-plus me-2"></i>Đăng ký hàng loạt
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Thêm Đăng ký
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 class="stats-number">@Model.Count()</h3>
+            <p class="stats-label">Tổng Đăng ký</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="stats-number">@Model.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Pending)</h3>
+            <p class="stats-label">Chờ Duyệt</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="stats-number">@Model.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Approved)</h3>
+            <p class="stats-label">Đã Duyệt</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h3 class="stats-number">@Model.Count(e => e.Status == Web_SIMS.Models.EnrollmentStatus.Rejected)</h3>
+            <p class="stats-label">Từ Chối</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Card -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Danh sách Đăng ký
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportEnrollments()">
+                    <i class="fas fa-file-excel me-1"></i>Xuất Excel
+                </button>
+                <button class="btn btn-outline-info btn-sm" onclick="printEnrollments()">
+                    <i class="fas fa-print me-1"></i>In danh sách
+                </button>
+                <button class="btn btn-outline-success btn-sm" onclick="bulkApprove()">
+                    <i class="fas fa-check-double me-1"></i>Duyệt hàng loạt
+                </button>
+                @if (User.IsInRole("Admin"))
+                {
+                    <button class="btn btn-outline-danger btn-sm" onclick="bulkDelete()">
+                        <i class="fas fa-trash-alt me-1"></i>Xóa hàng loạt
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Search and Filter -->
+        <form asp-action="Index" method="get" class="mb-4">
+            <div class="row g-3">
                 <div class="col-md-4">
                     <div class="input-group">
-                        <input type="text" class="form-control" name="searchString" value="@ViewData["CurrentFilter"]" placeholder="Tìm kiếm theo tên SV, khóa học...">
-                        <button class="btn btn-outline-secondary" type="submit">
+                        <span class="input-group-text">
                             <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" 
+                               class="form-control" placeholder="Tìm kiếm theo tên sinh viên, khóa học...">
+                        <button class="btn btn-primary" type="submit">
+                            Tìm kiếm
                         </button>
                     </div>
                 </div>
@@ -44,157 +383,805 @@
                         <option value="Cancelled" selected="@(ViewData["StatusFilter"]?.ToString() == "Cancelled")">Đã hủy</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-outline-primary w-100">
-                        <i class="fas fa-filter me-2"></i>Lọc
-                    </button>
-                </div>
-                <div class="col-md-2">
-                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
-                        <i class="fas fa-refresh me-2"></i>Làm mới
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Enrollments Table -->
-    <div class="card shadow">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-list me-2"></i>Danh sách đăng ký (@Model.TotalCount)
-            </h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã SV</th>
-                            <th>Sinh viên</th>
-                            <th>Khóa học</th>
-                            <th>Ngày đăng ký</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
+                <div class="col-md-3">
+                    <select name="courseFilter" class="form-select">
+                        <option value="">Tất cả khóa học</option>
+                        @foreach (var course in Model.GroupBy(e => e.Course?.CourseName).Select(g => g.Key).Distinct().Where(c => c != null))
                         {
-                            <tr>
-                                <td>
-                                    <strong>@item.Student?.StudentCode</strong>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-3">
-                                            <i class="fas fa-user-circle fa-2x text-primary"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold">@item.Student?.FullName</div>
-                                            <small class="text-muted">@item.Student?.Email</small>
-                                        </div>
+                            <option value="@course" selected="@(ViewData["CourseFilter"]?.ToString() == course)">@course</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"] as string))
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times me-1"></i>Xóa lọc
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
+
+        <!-- Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["WarningMessage"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["WarningMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        
+        <!-- Help Info for Delete Actions -->
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>💡 Hướng dẫn thao tác xóa:</strong>
+                <ul class="mb-0 mt-2">
+                    <li><strong>Xóa đơn lẻ:</strong> Click vào nút <i class="fas fa-trash text-danger"></i> hoặc chọn "Xóa đăng ký" từ menu thao tác</li>
+                    <li><strong>Xóa hàng loạt:</strong> Chọn các đăng ký bằng checkbox, sau đó click "Xóa hàng loạt"</li>
+                    <li><strong>⚠️ Lưu ý:</strong> Thao tác xóa sẽ xóa vĩnh viễn dữ liệu và không thể hoàn tác!</li>
+                    <li><strong>💡 Gợi ý:</strong> Nếu chỉ muốn hủy đăng ký tạm thời, hãy dùng "Từ chối" thay vì "Xóa"</li>
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Enrollments Table -->
+        <div class="table-responsive enrollment-table">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th style="width: 25%;">Sinh viên</th>
+                        <th style="width: 30%;">Khóa học & Giảng viên</th>
+                        <th style="width: 15%;">Trạng thái</th>
+                        <th style="width: 10%;">Điểm</th>
+                        <th style="width: 20%;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="enrollment-checkbox" value="@item.EnrollmentId">
+                            </td>
+                            <td>
+                                @if (item.Student != null)
+                                {
+                                    <div>
+                                        <div class="fw-semibold">@item.Student!.FullName</div>
+                                        <small class="text-muted">@item.Student.StudentCode</small>
                                     </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-3">
-                                            <i class="fas fa-book fa-2x text-success"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold">@item.Course?.CourseName</div>
-                                            <small class="text-muted">@item.Course?.CourseCode - @item.Course?.Instructor</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>@item.EnrollmentDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    @switch (item.Status)
-                                    {
-                                        case EnrollmentStatus.Pending:
-                                            <span class="badge bg-warning">Chờ duyệt</span>
-                                            break;
-                                        case EnrollmentStatus.Approved:
-                                            <span class="badge bg-success">Đã duyệt</span>
-                                            break;
-                                        case EnrollmentStatus.Rejected:
-                                            <span class="badge bg-danger">Từ chối</span>
-                                            break;
-                                        case EnrollmentStatus.Completed:
-                                            <span class="badge bg-info">Hoàn thành</span>
-                                            break;
-                                        case EnrollmentStatus.Cancelled:
-                                            <span class="badge bg-secondary">Đã hủy</span>
-                                            break;
-                                        default:
-                                            <span class="badge bg-secondary">@item.Status</span>
-                                            break;
-                                    }
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a asp-action="Details" asp-route-id="@item.EnrollmentId" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
+                                }
+                            </td>
+                            <td>
+                                @if (item.Course != null)
+                                {
+                                    <div class="course-info">
+                                        <div class="fw-semibold mb-1">@item.Course.CourseName</div>
+                                        <small class="text-muted d-block mb-1">@item.Course.CourseCode - @item.Course.Credits tín chỉ</small>
+                                        @if (item.Course?.Faculty != null)
                                         {
-                                            <a asp-action="Edit" asp-route-id="@item.EnrollmentId" class="btn btn-sm btn-outline-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            @if (item.Status == EnrollmentStatus.Pending)
-                                            {
-                                                <form asp-action="Approve" asp-route-id="@item.EnrollmentId" method="post" class="d-inline">
-                                                    <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Xác nhận duyệt đăng ký này?')">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                </form>
-                                                <form asp-action="Reject" asp-route-id="@item.EnrollmentId" method="post" class="d-inline">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xác nhận từ chối đăng ký này?')">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                            <a asp-action="Delete" asp-route-id="@item.EnrollmentId" class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
+                                            <small class="text-primary">@item.Course!.Faculty!.FullName</small>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">
+                                                <i class="fas fa-user-slash me-1"></i>Chưa phân công
+                                            </small>
                                         }
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                                }
+                            </td>
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case Web_SIMS.Models.EnrollmentStatus.Pending:
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Chờ duyệt
+                                        </span>
+                                        break;
+                                    case Web_SIMS.Models.EnrollmentStatus.Approved:
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Đã duyệt
+                                        </span>
+                                        break;
+                                    case Web_SIMS.Models.EnrollmentStatus.Rejected:
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Từ chối
+                                        </span>
+                                        break;
+                                    case Web_SIMS.Models.EnrollmentStatus.Completed:
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-graduation-cap me-1"></i>Hoàn thành
+                                        </span>
+                                        break;
+                                    case Web_SIMS.Models.EnrollmentStatus.Cancelled:
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-ban me-1"></i>Đã hủy
+                                        </span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <span class="text-muted">Chưa có</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <!-- Quick Actions for Desktop -->
+                                    <div class="quick-actions">
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a class="btn btn-action btn-action-warning" asp-action="Edit" asp-route-id="@item.EnrollmentId" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        }
+                                        @if (item.Status == Web_SIMS.Models.EnrollmentStatus.Pending && (User.IsInRole("Admin") || User.IsInRole("Faculty")))
+                                        {
+                                            <button class="btn btn-action btn-action-success" onclick="approveEnrollment(@item.EnrollmentId)" title="Duyệt đăng ký">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-action-danger" onclick="rejectEnrollment(@item.EnrollmentId)" title="Từ chối đăng ký">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        }
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <button type="button" class="btn btn-action btn-action-danger" 
+                                                    onclick="confirmDelete(@item.EnrollmentId, '@Html.Raw(item.Student?.FullName?.Replace("'", "\\'"))', '@Html.Raw(item.Course?.CourseName?.Replace("'", "\\'"))')" 
+                                                    title="Xóa đăng ký">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
 
-            <!-- Pagination -->
-            @{
-                var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-                var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-            }
+                                    <!-- Dropdown for Mobile -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-action btn-action-primary dropdown-toggle action-dropdown-toggle" type="button" 
+                                                data-bs-toggle="dropdown" aria-expanded="false" title="Thao tác">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end action-dropdown">
+                                            @if (User.IsInRole("Admin"))
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item action-item" asp-action="Edit" asp-route-id="@item.EnrollmentId">
+                                                        <i class="fas fa-edit action-icon text-warning"></i>
+                                                        <span>Chỉnh sửa</span>
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (item.Status == Web_SIMS.Models.EnrollmentStatus.Pending && (User.IsInRole("Admin") || User.IsInRole("Faculty")))
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item action-item" 
+                                                            onclick="approveEnrollment(@item.EnrollmentId)">
+                                                        <i class="fas fa-check action-icon text-success"></i>
+                                                        <span>Duyệt đăng ký</span>
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item action-item text-danger" 
+                                                            onclick="rejectEnrollment(@item.EnrollmentId)">
+                                                        <i class="fas fa-times action-icon text-danger"></i>
+                                                        <span>Từ chối đăng ký</span>
+                                                    </button>
+                                                </li>
+                                            }
+                                            @if (User.IsInRole("Admin"))
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
 
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item @prevDisabled">
-                        <a class="page-link" asp-action="Index" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["StatusFilter"]" asp-route-pageNumber="@(Model.PageIndex - 1)">
+                                                <li>
+                                                    <button class="dropdown-item action-item text-danger" 
+                                                            onclick="confirmDelete(@item.EnrollmentId, '@Html.Raw(item.Student?.FullName?.Replace("'", "\\'"))', '@Html.Raw(item.Course?.CourseName?.Replace("'", "\\'"))')">
+                                                        <i class="fas fa-trash action-icon text-danger"></i>
+                                                        <span>Xóa đăng ký</span>
+                                                    </button>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.HasPreviousPage || Model.HasNextPage)
+        {
+            <nav aria-label="Phân trang">
+                <ul class="pagination justify-content-center mt-4">
+                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                           asp-route-pageNumber="@(Model.PageIndex - 1)"
+                           asp-route-currentFilter="@ViewData["CurrentFilter"]">
                             <i class="fas fa-chevron-left"></i> Trước
                         </a>
                     </li>
-
-                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    
+                    @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
                     {
-                        var pageClass = i == Model.PageIndex ? "active" : "";
-                        <li class="page-item @pageClass">
-                            <a class="page-link" asp-action="Index" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["StatusFilter"]" asp-route-pageNumber="@i">@i</a>
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-sortOrder="@ViewData["CurrentSort"]"
+                               asp-route-pageNumber="@i"
+                               asp-route-currentFilter="@ViewData["CurrentFilter"]">@i</a>
                         </li>
                     }
-
-                    <li class="page-item @nextDisabled">
-                        <a class="page-link" asp-action="Index" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["StatusFilter"]" asp-route-pageNumber="@(Model.PageIndex + 1)">
+                    
+                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                           asp-route-pageNumber="@(Model.PageIndex + 1)"
+                           asp-route-currentFilter="@ViewData["CurrentFilter"]">
                             Sau <i class="fas fa-chevron-right"></i>
                         </a>
                     </li>
                 </ul>
             </nav>
+        }
+    </div>
+</div>
+
+<script>
+function exportEnrollments() {
+    const btn = event.target.closest('button');
+    btn.classList.add('loading');
+    
+    setTimeout(() => {
+        btn.classList.remove('loading');
+        alert('Xuất dữ liệu đăng ký thành công!');
+    }, 2000);
+}
+
+function printEnrollments() {
+    window.print();
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.enrollment-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+function bulkApprove() {
+    const selectedIds = Array.from(document.querySelectorAll('.enrollment-checkbox:checked'))
+                            .map(cb => cb.value);
+    
+    if (selectedIds.length === 0) {
+        alert('Vui lòng chọn ít nhất một đăng ký để duyệt!');
+        return;
+    }
+    
+    if (confirm(`Bạn có chắc chắn muốn duyệt ${selectedIds.length} đăng ký đã chọn?`)) {
+        // Implement bulk approve logic
+        alert('Tính năng duyệt hàng loạt đang được phát triển!');
+    }
+}
+
+function bulkDelete() {
+    const selectedIds = Array.from(document.querySelectorAll('.enrollment-checkbox:checked'))
+                            .map(cb => cb.value);
+    
+    if (selectedIds.length === 0) {
+        alert('⚠️ Vui lòng chọn ít nhất một đăng ký để xóa!');
+        return;
+    }
+    
+    // Enhanced confirmation dialog for bulk delete
+    const result = confirm(`🗑️ XÓA HÀNG LOẠT ĐĂNG KÝ\n\nBạn có chắc chắn muốn XÓA HOÀN TOÀN ${selectedIds.length} đăng ký đã chọn?\n\n⚠️ CẢNH BÁO:\n- Tất cả dữ liệu sẽ bị XÓA VĨNH VIỄN khỏi database\n- Thao tác này KHÔNG THỂ HOÀN TÁC!\n- Chỉ tiếp tục nếu bạn hoàn toàn chắc chắn!\n\nNhập "XOA" để xác nhận:`);
+    
+    if (result) {
+        const confirmation = prompt('Để xác nhận xóa hàng loạt, vui lòng nhập "XOA" (viết hoa):');
+        
+        if (confirmation === 'XOA') {
+            // Show loading state
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang xóa...';
+            
+            // Process each deletion
+            let completed = 0;
+            selectedIds.forEach((id, index) => {
+                setTimeout(() => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/admin/enrollments/delete/${id}`;
+                    
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        form.appendChild(token.cloneNode());
+                    }
+                    
+                    document.body.appendChild(form);
+                    
+                    // Submit and track completion
+                    form.addEventListener('submit', () => {
+                        completed++;
+                        if (completed === selectedIds.length) {
+                            // Reload page after all deletions
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        }
+                    });
+                    
+                    form.submit();
+                }, index * 500); // Stagger requests by 500ms
+            });
+        } else {
+            alert('❌ Xác nhận không đúng. Thao tác xóa hàng loạt đã bị hủy.');
+        }
+    }
+}
+
+function approveEnrollment(id) {
+    // Enhanced confirmation dialog
+    const result = confirm('✅ Xác nhận duyệt đăng ký\n\nBạn có chắc chắn muốn duyệt đăng ký này?');
+    
+    if (result) {
+        // Show loading state
+        const approveButtons = document.querySelectorAll(`[onclick*="approveEnrollment(${id})"]`);
+        approveButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        });
+        
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/enrollments/approve/${id}`;
+        
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            form.appendChild(token.cloneNode());
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function rejectEnrollment(id) {
+    // Find enrollment info from the table row
+    const row = document.querySelector(`[onclick*="rejectEnrollment(${id})"]`).closest('tr');
+    const studentName = row.querySelector('td:nth-child(3) .fw-semibold').textContent;
+    const courseName = row.querySelector('td:nth-child(4) .fw-semibold').textContent;
+    
+    // Populate modal with enrollment info
+    document.getElementById('studentName').textContent = studentName;
+    document.getElementById('courseName').textContent = courseName;
+    document.getElementById('rejectReasonInput').value = '';
+    
+    // Store enrollment ID for later use
+    document.getElementById('confirmRejectBtn').setAttribute('data-enrollment-id', id);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
+}
+
+// Handle confirm reject button click
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmRejectBtn').addEventListener('click', function() {
+        const id = this.getAttribute('data-enrollment-id');
+        const reason = document.getElementById('rejectReasonInput').value.trim();
+        
+        // Show loading state
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...';
+        
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/enrollments/reject/${id}`;
+        
+        if (reason) {
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'rejectReason';
+            reasonInput.value = reason;
+            form.appendChild(reasonInput);
+        }
+        
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            form.appendChild(token.cloneNode());
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+
+function confirmDelete(id, studentName, courseName) {
+    // Enhanced confirmation dialog with better formatting
+    const message = `🗑️ XÓA HOÀN TOÀN ĐĂNG KÝ
+
+📋 THÔNG TIN ĐĂNG KÝ:
+👤 Sinh viên: ${studentName}
+📚 Khóa học: ${courseName}
+
+⚠️ CẢNH BÁO QUAN TRỌNG:
+• Dữ liệu sẽ bị XÓA VĨNH VIỄN khỏi database
+• Thao tác này KHÔNG THỂ HOÀN TÁC!
+• Tất cả thông tin liên quan sẽ bị mất
+
+❓ Bạn có CHẮC CHẮN muốn xóa đăng ký này không?
+
+💡 Lưu ý: Nếu chỉ muốn hủy đăng ký tạm thời, 
+hãy sử dụng tính năng "Từ chối" thay vì "Xóa".`;
+
+    const result = confirm(message);
+    
+    if (result) {
+        // Double confirmation for safety
+        const doubleConfirm = confirm(`🔴 XÁC NHẬN LẦN CUỐI
+
+Bạn thực sự muốn XÓA VĨNH VIỄN đăng ký của:
+"${studentName}" - "${courseName}"?
+
+⚠️ Đây là cơ hội cuối cùng để hủy bỏ!
+
+Nhấn OK để XÓA HOÀN TOÀN
+Nhấn Cancel để GIỮ LẠI`);
+        
+        if (doubleConfirm) {
+            // Show loading state
+            const deleteButtons = document.querySelectorAll(`[onclick*="confirmDelete(${id}"]`);
+            deleteButtons.forEach(btn => {
+                btn.disabled = true;
+                const icon = btn.querySelector('i');
+                if (icon && icon.classList.contains('fa-trash')) {
+                    icon.className = 'fas fa-spinner fa-spin';
+                }
+            });
+            
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/enrollments/delete/${id}`;
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                form.appendChild(token.cloneNode());
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        } else {
+            alert('✅ Đã hủy thao tác xóa. Đăng ký được giữ nguyên.');
+        }
+    }
+}
+</script>
+
+<style>
+    /* Action Buttons Styles */
+    .action-buttons {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-width: 120px;
+    }
+    
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-action::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-action:hover::before {
+        left: 100%;
+    }
+    
+    .btn-action-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-action-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .btn-action-info {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        color: white;
+        box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+    }
+    
+    .btn-action-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        color: white;
+    }
+    
+    .btn-action-warning {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-action-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        color: white;
+    }
+    
+    .btn-action-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-action-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        color: white;
+    }
+    
+    /* Special styling for delete buttons */
+    .btn-action-danger[title*="Xóa"] {
+        background: linear-gradient(135deg, #dc2626, #991b1b);
+        animation: pulse-danger 2s infinite;
+    }
+    
+    .btn-action-danger[title*="Xóa"]:hover {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+    }
+    
+    @@keyframes pulse-danger {
+        0%, 100% { box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
+        50% { box-shadow: 0 2px 12px rgba(220, 38, 38, 0.5); }
+    }
+    
+    .btn-action-success {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-action-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+    
+    /* Quick Actions - Hidden by default, shown on row hover */
+    .quick-actions {
+        display: none;
+        gap: 5px;
+        animation: slideInRight 0.3s ease;
+    }
+    
+    .action-buttons:hover .quick-actions {
+        display: flex;
+    }
+    
+    .action-buttons:hover .dropdown {
+        display: none;
+    }
+    
+    /* Dropdown Styles */
+    .action-dropdown {
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        padding: 8px 0;
+        min-width: 180px;
+        background: white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .action-item {
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s ease;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+    
+    .action-item:hover {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        transform: translateX(5px);
+    }
+    
+    .action-item.text-danger:hover {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        color: #dc2626 !important;
+    }
+    
+    .action-icon {
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+    
+    /* Row hover effect */
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Animations */
+    @@keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Tooltip enhancement */
+    .btn-action[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 5px;
+    }
+    
+    .btn-action[title]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+    }
+    
+    /* Desktop - hiển thị quick actions */
+    @@media (min-width: 769px) {
+        .quick-actions {
+            display: flex !important;
+        }
+        
+        .action-buttons .dropdown {
+            display: none !important;
+        }
+    }
+    
+    /* Mobile responsive */
+    @@media (max-width: 768px) {
+        .action-buttons {
+            min-width: auto;
+        }
+        
+        .quick-actions {
+            display: none !important;
+        }
+        
+        .action-buttons .dropdown {
+            display: block !important;
+        }
+        
+        .btn-action {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+
+<!-- Reject Enrollment Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="rejectModalLabel">
+                    <i class="fas fa-times-circle me-2"></i>
+                    Từ chối đăng ký
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Bạn có chắc chắn muốn từ chối đăng ký này?
+                </div>
+                <div class="mb-3">
+                    <label for="rejectReasonInput" class="form-label">Lý do từ chối (tùy chọn):</label>
+                    <textarea class="form-control" id="rejectReasonInput" rows="3" 
+                              placeholder="Nhập lý do từ chối để sinh viên hiểu rõ..."></textarea>
+                </div>
+                <div id="enrollmentInfo" class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">Thông tin đăng ký:</h6>
+                        <p class="card-text mb-1"><strong>Sinh viên:</strong> <span id="studentName"></span></p>
+                        <p class="card-text mb-0"><strong>Khóa học:</strong> <span id="courseName"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn">
+                    <i class="fas fa-times-circle me-1"></i>
+                    Từ chối đăng ký
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>d81e5e1e-3d17-42e7-b7a2-13cafe175a99</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <!-- Exclude test project from main build -->
+  <ItemGroup>
+    <Compile Remove="Web_SIMS.Tests/**" />
+    <Content Remove="Web_SIMS.Tests/**" />
+    <EmbeddedResource Remove="Web_SIMS.Tests/**" />
+    <None Remove="Web_SIMS.Tests/**" />
   </ItemGroup>
 
 </Project>

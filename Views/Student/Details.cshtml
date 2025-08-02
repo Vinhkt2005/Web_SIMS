@@ -2,199 +2,245 @@
 
 @{
     ViewData["Title"] = "Chi tiết sinh viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-user me-2"></i>Chi tiết sinh viên
-                        </h6>
-                        <div>
-                            <a asp-action="Edit" asp-route-id="@Model.StudentId" class="btn btn-warning btn-sm">
-                                <i class="fas fa-edit me-2"></i>Sửa
-                            </a>
-                            <a asp-action="Index" class="btn btn-secondary btn-sm">
-                                <i class="fas fa-arrow-left me-2"></i>Quay lại
-                            </a>
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-details.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Sinh viên</a></li>
+                <li class="breadcrumb-item active">Chi tiết sinh viên</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-graduate me-2 text-primary"></i>Chi tiết sinh viên
+        </h1>
+        <p class="text-muted mb-0">Thông tin chi tiết của sinh viên @Model.FullName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.StudentId" class="btn btn-warning">
+            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+        </a>
+    </div>
+</div>
+
+<!-- Student Profile Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm student-profile-card">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="student-avatar">
+                            <div class="avatar-circle">
+                                <span class="avatar-text">@Model.FullName.Substring(0, 1).ToUpper()</span>
+                            </div>
+                            <div class="status-indicator @(Model.IsActive ? "active" : "inactive")"></div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="student-info">
+                            <h2 class="student-name mb-1">@Model.FullName</h2>
+                            <div class="student-meta">
+                                <span class="student-code">@Model.StudentCode</span>
+                                <span class="separator">•</span>
+                                <span class="student-major">@Model.Major</span>
+                                <span class="separator">•</span>
+                                <span class="student-year">Khóa @Model.AcademicYear</span>
+                            </div>
+                            <div class="student-status mt-2">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge badge-success-soft">
+                                        <i class="fas fa-check-circle me-1"></i>Đang học
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary-soft">
+                                        <i class="fas fa-pause-circle me-1"></i>Tạm nghỉ
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="student-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">@(Model.Enrollments?.Count ?? 0)</div>
+                                <div class="stat-label">Khóa học</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="text-primary mb-3">
-                                <i class="fas fa-info-circle me-2"></i>Thông tin cá nhân
-                            </h5>
+            </div>
+        </div>
+    </div>
+</div>
 
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Mã sinh viên:</div>
-                                <div class="col-sm-8">@Model.StudentCode</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Họ và tên:</div>
-                                <div class="col-sm-8">@Model.FullName</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Email:</div>
-                                <div class="col-sm-8">@Model.Email</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Số điện thoại:</div>
-                                <div class="col-sm-8">@Model.PhoneNumber</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Ngày sinh:</div>
-                                <div class="col-sm-8">@Model.DateOfBirth.ToString("dd/MM/yyyy")</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Giới tính:</div>
-                                <div class="col-sm-8">@Model.Gender</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Địa chỉ:</div>
-                                <div class="col-sm-8">@Model.Address</div>
-                            </div>
+<!-- Main Content -->
+<div class="row">
+    <!-- Personal Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user text-primary me-2"></i>Thông tin cá nhân
+                </h5>
+            </div>
+            <div class="card-body pt-3">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-id-card text-primary"></i>
                         </div>
-
-                        <div class="col-md-6">
-                            <h5 class="text-primary mb-3">
-                                <i class="fas fa-graduation-cap me-2"></i>Thông tin học tập
-                            </h5>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Chuyên ngành:</div>
-                                <div class="col-sm-8">
-                                    <span class="badge bg-info">@Model.Major</span>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Khóa học:</div>
-                                <div class="col-sm-8">@Model.AcademicYear</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Ngày nhập học:</div>
-                                <div class="col-sm-8">@Model.EnrollmentDate.ToString("dd/MM/yyyy")</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Trạng thái:</div>
-                                <div class="col-sm-8">
-                                    @if (Model.IsActive)
-                                    {
-                                        <span class="badge bg-success">Hoạt động</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Không hoạt động</span>
-                                    }
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Ngày tạo:</div>
-                                <div class="col-sm-8">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-4 fw-semibold">Cập nhật lần cuối:</div>
-                                <div class="col-sm-8">@Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm")</div>
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(Model.Notes))
-                            {
-                                <div class="row mb-3">
-                                    <div class="col-sm-4 fw-semibold">Ghi chú:</div>
-                                    <div class="col-sm-8">@Model.Notes</div>
-                                </div>
-                            }
+                        <div class="info-content">
+                            <div class="info-label">Mã sinh viên</div>
+                            <div class="info-value">@Model.StudentCode</div>
                         </div>
                     </div>
 
-                    @if (Model.Enrollments != null && Model.Enrollments.Any())
-                    {
-                        <hr class="my-4">
-                        <h5 class="text-primary mb-3">
-                            <i class="fas fa-list me-2"></i>Danh sách đăng ký khóa học
-                        </h5>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope text-info"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">
+                                <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                            </div>
+                        </div>
+                    </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Khóa học</th>
-                                        <th>Ngày đăng ký</th>
-                                        <th>Trạng thái</th>
-                                        <th>Điểm</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var enrollment in Model.Enrollments)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="avatar-sm me-3">
-                                                        <i class="fas fa-book fa-2x text-success"></i>
-                                                    </div>
-                                                    <div>
-                                                        <div class="fw-semibold">@enrollment.Course?.CourseName</div>
-                                                        <small class="text-muted">@enrollment.Course?.CourseCode</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>@enrollment.EnrollmentDate.ToString("dd/MM/yyyy")</td>
-                                            <td>
-                                                @switch (enrollment.Status)
-                                                {
-                                                    case EnrollmentStatus.Pending:
-                                                        <span class="badge bg-warning">Chờ duyệt</span>
-                                                        break;
-                                                    case EnrollmentStatus.Approved:
-                                                        <span class="badge bg-success">Đã duyệt</span>
-                                                        break;
-                                                    case EnrollmentStatus.Rejected:
-                                                        <span class="badge bg-danger">Từ chối</span>
-                                                        break;
-                                                    case EnrollmentStatus.Completed:
-                                                        <span class="badge bg-info">Hoàn thành</span>
-                                                        break;
-                                                    case EnrollmentStatus.Cancelled:
-                                                        <span class="badge bg-secondary">Đã hủy</span>
-                                                        break;
-                                                    default:
-                                                        <span class="badge bg-secondary">@enrollment.Status</span>
-                                                        break;
-                                                }
-                                            </td>
-                                            <td>
-                                                @{
-                                                    var academicRecord = Model.AcademicRecords?.FirstOrDefault(ar => ar.CourseId == enrollment.CourseId);
-                                                    if (academicRecord?.TotalScore.HasValue == true)
-                                                    {
-                                                        <span class="badge bg-primary">@academicRecord.TotalScore.Value.ToString("F1")</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="text-muted">Chưa có điểm</span>
-                                                    }
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-phone text-success"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Số điện thoại</div>
+                            <div class="info-value">
+                                <a href="tel:@Model.PhoneNumber" class="text-decoration-none">@Model.PhoneNumber</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-birthday-cake text-warning"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Ngày sinh</div>
+                            <div class="info-value">@Model.DateOfBirth.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-@(Model.Gender == "Nam" ? "mars" : "venus") text-@(Model.Gender == "Nam" ? "primary" : "danger")"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Giới tính</div>
+                            <div class="info-value">@Model.Gender</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt text-secondary"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Địa chỉ</div>
+                            <div class="info-value">@Model.Address</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Academic Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-graduation-cap text-success me-2"></i>Thông tin học tập
+                </h5>
+            </div>
+
+            <div class="card-body pt-3">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-book text-info"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Chuyên ngành</div>
+                            <div class="info-value">
+                                <span class="badge badge-info-soft">@Model.Major</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar-alt text-primary"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Khóa học</div>
+                            <div class="info-value">@Model.AcademicYear</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-door-open text-success"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Ngày nhập học</div>
+                            <div class="info-value">@Model.EnrollmentDate.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-clock text-secondary"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Ngày tạo</div>
+                            <div class="info-value">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-edit text-warning"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Cập nhật lần cuối</div>
+                            <div class="info-value">@(Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")</div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="info-item full-width">
+                            <div class="info-icon">
+                                <i class="fas fa-sticky-note text-info"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Ghi chú</div>
+                                <div class="info-value">@Model.Notes</div>
+                            </div>
                         </div>
                     }
                 </div>
@@ -202,3 +248,340 @@
         </div>
     </div>
 </div>
+
+<!-- Course Enrollments -->
+@if (Model.Enrollments != null && Model.Enrollments.Any())
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-book-open text-primary me-2"></i>Danh sách khóa học đã đăng ký
+                        </h5>
+                        <span class="badge badge-primary-soft">@Model.Enrollments.Count() khóa học</span>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="row g-3">
+                        @foreach (var enrollment in Model.Enrollments)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="course-card">
+                                    <div class="course-header">
+                                        <div class="course-icon">
+                                            <i class="fas fa-book"></i>
+                                        </div>
+                                        <div class="course-status">
+                                            @switch (enrollment.Status)
+                                            {
+                                                case EnrollmentStatus.Pending:
+                                                    <span class="badge badge-warning-soft">
+                                                        <i class="fas fa-clock me-1"></i>Chờ duyệt
+                                                    </span>
+                                                    break;
+                                                case EnrollmentStatus.Approved:
+                                                    <span class="badge badge-success-soft">
+                                                        <i class="fas fa-check me-1"></i>Đã duyệt
+                                                    </span>
+                                                    break;
+                                                case EnrollmentStatus.Rejected:
+                                                    <span class="badge badge-danger-soft">
+                                                        <i class="fas fa-times me-1"></i>Từ chối
+                                                    </span>
+                                                    break;
+                                                case EnrollmentStatus.Completed:
+                                                    <span class="badge badge-info-soft">
+                                                        <i class="fas fa-graduation-cap me-1"></i>Hoàn thành
+                                                    </span>
+                                                    break;
+                                                case EnrollmentStatus.Cancelled:
+                                                    <span class="badge badge-secondary-soft">
+                                                        <i class="fas fa-ban me-1"></i>Đã hủy
+                                                    </span>
+                                                    break;
+                                                default:
+                                                    <span class="badge badge-secondary-soft">@enrollment.Status</span>
+                                                    break;
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="course-body">
+                                        <h6 class="course-title">@enrollment.Course?.CourseName</h6>
+                                        <p class="course-code">@enrollment.Course?.CourseCode</p>
+                                        <div class="course-meta">
+                                            <div class="meta-item">
+                                                <i class="fas fa-calendar-plus text-muted me-1"></i>
+                                                <span>@enrollment.EnrollmentDate.ToString("dd/MM/yyyy")</span>
+                                            </div>
+                                            @{
+                                                var academicRecord = Model.AcademicRecords?.FirstOrDefault(ar => ar.CourseId == enrollment.CourseId);
+                                            }
+                                            <div class="meta-item">
+                                                <i class="fas fa-star text-muted me-1"></i>
+                                                @if (academicRecord?.TotalScore.HasValue == true)
+                                                {
+                                                    <span class="score-badge">@academicRecord.TotalScore.Value.ToString("F1")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Chưa có điểm</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted">Chưa có khóa học nào</h5>
+                        <p class="text-muted mb-0">Sinh viên chưa đăng ký khóa học nào.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click-to-copy functionality for student code and email
+            const studentCode = document.querySelector('.info-value');
+            if (studentCode && studentCode.textContent.includes('@Model.StudentCode')) {
+                studentCode.style.cursor = 'pointer';
+                studentCode.title = 'Click để sao chép mã sinh viên';
+                
+                studentCode.addEventListener('click', function() {
+                    const textToCopy = this.textContent;
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        showToast('Đã sao chép mã sinh viên: ' + textToCopy, 'success');
+                    }).catch(() => {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        showToast('Đã sao chép mã sinh viên: ' + textToCopy, 'success');
+                    });
+                });
+            }
+
+            // Add hover effects for course cards
+            const courseCards = document.querySelectorAll('.course-card');
+            courseCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-6px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Add smooth animations for info items
+            const infoItems = document.querySelectorAll('.info-item');
+            infoItems.forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.1}s`;
+                
+                item.addEventListener('click', function() {
+                    // Add ripple effect
+                    const ripple = document.createElement('div');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(59, 130, 246, 0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = '50%';
+                    ripple.style.top = '50%';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.marginLeft = '-10px';
+                    ripple.style.marginTop = '-10px';
+                    
+                    this.style.position = 'relative';
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+
+            // Add loading animation for avatar
+            const avatar = document.querySelector('.avatar-circle');
+            if (avatar) {
+                avatar.addEventListener('click', function() {
+                    this.style.animation = 'spin 1s ease-in-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 1000);
+                });
+            }
+
+            // Add stats counter animation
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                const finalValue = parseInt(stat.textContent);
+                if (finalValue > 0) {
+                    let currentValue = 0;
+                    const increment = finalValue / 30;
+                    
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            stat.textContent = finalValue;
+                            clearInterval(timer);
+                        } else {
+                            stat.textContent = Math.floor(currentValue);
+                        }
+                    }, 50);
+                }
+            });
+
+            // Add intersection observer for animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for scroll animations
+            document.querySelectorAll('.card, .course-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Add email and phone click handlers
+            const emailLinks = document.querySelectorAll('a[href^="mailto:"]');
+            emailLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const email = this.getAttribute('href').replace('mailto:', '');
+                    navigator.clipboard.writeText(email).then(() => {
+                        showToast('Đã sao chép email: ' + email, 'success');
+                    });
+                });
+            });
+
+            const phoneLinks = document.querySelectorAll('a[href^="tel:"]');
+            phoneLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const phone = this.getAttribute('href').replace('tel:', '');
+                    navigator.clipboard.writeText(phone).then(() => {
+                        showToast('Đã sao chép số điện thoại: ' + phone, 'success');
+                    });
+                });
+            });
+        });
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Add toast styles
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : '#3b82f6'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 9999;
+                animation: slideInRight 0.3s ease;
+                font-size: 0.875rem;
+                max-width: 300px;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+            
+            @@keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @@keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+            
+            .toast-content {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

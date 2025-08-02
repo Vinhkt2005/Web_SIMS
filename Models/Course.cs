@@ -39,7 +39,6 @@ namespace Web_SIMS.Models
         [Display(Name = "Năm học")]
         public string AcademicYear { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Giảng viên là bắt buộc")]
         [Display(Name = "Giảng viên")]
         public string Instructor { get; set; } = string.Empty;
 
@@ -52,8 +51,13 @@ namespace Web_SIMS.Models
         [Display(Name = "Ngày cập nhật")]
         public DateTime? UpdatedDate { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn giảng viên")]
+        [Display(Name = "Giảng viên")]
+        public int FacultyId { get; set; }
+
         // Navigation Properties
-        public virtual ICollection<Enrollment>? Enrollments { get; set; }
-        public virtual ICollection<AcademicRecord>? AcademicRecords { get; set; }
+        public virtual Faculty? Faculty { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+        public virtual ICollection<AcademicRecord> AcademicRecords { get; set; } = new List<AcademicRecord>();
     }
 }

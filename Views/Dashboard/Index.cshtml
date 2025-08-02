@@ -2,215 +2,588 @@
 
 @{
     ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0 text-gray-800">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </h1>
-                    <p class="text-muted">Tổng quan hệ thống Student Information Management</p>
-                </div>
-                <div class="text-end">
-                    <small class="text-muted">Chào mừng, @User.FindFirst("FullName")?.Value</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Tổng sinh viên
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalStudents</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
+<!-- Welcome Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card welcome-card" style="color: white;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div style="z-index: 2; position: relative;">
+                        <h2 class="mb-2 fw-bold">Chào mừng trở lại, @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)!</h2>
+                        <p class="mb-0 opacity-75 fs-5">Hôm nay là @DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))</p>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Tổng khóa học
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalCourses</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-book fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Đăng ký chờ duyệt
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingEnrollments</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Điểm trung bình
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.AverageScore.ToString("F2")</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Content Row -->
-    <div class="row">
-        <!-- Recent Enrollments -->
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-list me-2"></i>Đăng ký gần đây
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Sinh viên</th>
-                                    <th>Khóa học</th>
-                                    <th>Ngày đăng ký</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var enrollment in Model.RecentEnrollments)
-                                {
-                                    <tr>
-                                        <td>@enrollment.StudentName</td>
-                                        <td>@enrollment.CourseName</td>
-                                        <td>@enrollment.EnrollmentDate.ToString("dd/MM/yyyy")</td>
-                                        <td>
-                                            <span class="badge bg-@(enrollment.Status == "Approved" ? "success" : enrollment.Status == "Pending" ? "warning" : "secondary")">
-                                                @enrollment.Status
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Courses -->
-        <div class="col-xl-4 col-lg-5">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-trophy me-2"></i>Khóa học phổ biến
-                    </h6>
-                </div>
-                <div class="card-body">
-                    @foreach (var course in Model.TopCourses)
-                    {
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-semibold">@course.CourseName</span>
-                                <small class="text-muted">@course.EnrollmentCount/@course.MaxStudents</small>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-primary" role="progressbar"
-                                     style="width: @(course.EnrollmentRate)%"
-                                     aria-valuenow="@course.EnrollmentRate"
-                                     aria-valuemin="0" aria-valuemax="100">
-                                </div>
-                            </div>
-                            <small class="text-muted">@course.EnrollmentRate.ToString("F1")% đăng ký</small>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Student Performance -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-medal me-2"></i>Top sinh viên xuất sắc
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Mã SV</th>
-                                    <th>Họ và tên</th>
-                                    <th>Điểm TB</th>
-                                    <th>Số môn học</th>
-                                    <th>Môn hoàn thành</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var student in Model.StudentPerformance)
-                                {
-                                    <tr>
-                                        <td>@student.StudentCode</td>
-                                        <td>@student.StudentName</td>
-                                        <td>
-                                            <span class="badge bg-@(student.AverageScore >= 8.0m ? "success" : student.AverageScore >= 6.5m ? "warning" : "danger")">
-                                                @student.AverageScore.ToString("F2")
-                                            </span>
-                                        </td>
-                                        <td>@student.TotalCourses</td>
-                                        <td>@student.CompletedCourses</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                    <div class="text-end" style="z-index: 2; position: relative;">
+                        <i class="fas fa-chart-line fa-4x opacity-25"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalStudents</h3>
+            <p class="stats-label">Tổng Sinh viên</p>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-arrow-up"></i> @Model.ActiveStudents hoạt động
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h3 class="stats-number">@(ViewBag.TotalFaculties ?? 0)</h3>
+            <p class="stats-label">Tổng Giảng viên</p>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-check-circle"></i> @(ViewBag.ActiveFaculties ?? 0) đang hoạt động
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalCourses</h3>
+            <p class="stats-label">Tổng Khóa học</p>
+            <div class="mt-2">
+                <small class="text-info">
+                    <i class="fas fa-play-circle"></i> @Model.ActiveCourses đang mở
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalEnrollments</h3>
+            <p class="stats-label">Tổng Đăng ký</p>
+            <div class="mt-2">
+                <small class="text-warning">
+                    <i class="fas fa-clock"></i> @Model.PendingEnrollments chờ duyệt
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Charts and Recent Activity -->
+<div class="row mb-4">
+    <!-- Recent Enrollments -->
+    <div class="col-lg-8 col-md-7 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-clipboard-list me-2"></i>Đăng ký gần đây
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sinh viên</th>
+                                <th>Khóa học</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enrollment in Model.RecentEnrollments)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                                @enrollment.StudentName.Substring(0, 1).ToUpper()
+                                            </div>
+                                            @enrollment.StudentName
+                                        </div>
+                                    </td>
+                                    <td>@enrollment.CourseName</td>
+                                    <td>
+                                        @if (enrollment.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Đã duyệt
+                                            </span>
+                                        }
+                                        else if (enrollment.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>Chờ duyệt
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times me-1"></i>@enrollment.Status
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats and Chart -->
+    <div class="col-lg-4 col-md-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie me-2"></i>Thống kê nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Average Score -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">Điểm trung bình</span>
+                        <span class="badge bg-info">@Model.AverageScore.ToString("F2")</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-gradient" 
+                             style="width: @(Model.AverageScore * 10)%; background: linear-gradient(90deg, #f59e0b, #10b981);"
+                             role="progressbar">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Courses -->
+                <h6 class="mb-3">Khóa học phổ biến</h6>
+                @foreach (var course in Model.TopCourses.Take(5))
+                {
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold">@course.CourseName</span>
+                            <small class="text-muted">@course.EnrollmentCount/@course.MaxStudents</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" 
+                                 style="width: @(course.EnrollmentRate)%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"
+                                 role="progressbar">
+                            </div>
+                        </div>
+                        <small class="text-muted">@course.EnrollmentRate.ToString("F1")% đăng ký</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/students/create" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i>Thêm sinh viên
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/faculties/create" class="btn btn-success w-100">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Thêm giảng viên
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/courses/create" class="btn btn-warning w-100">
+                            <i class="fas fa-book-plus me-2"></i>Thêm khóa học
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/enrollments" class="btn btn-info w-100">
+                            <i class="fas fa-clipboard-check me-2"></i>Duyệt đăng ký
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Styles {
+    <style>
+        /* Dashboard specific styles */
+        .dashboard-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 1rem 0;
+        }
+        
+        /* Welcome card enhancement */
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+        
+        /* Enhanced stats cards */
+        .stats-card {
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stats-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: white;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover .stats-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin: 0 0 0.5rem 0;
+            line-height: 1;
+        }
+        
+        .stats-label {
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 0;
+        }
+        
+        /* Enhanced cards */
+        .card {
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 2px solid #e2e8f0;
+            border-radius: 1.25rem 1.25rem 0 0 !important;
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin: 0;
+        }
+        
+        /* Table enhancements */
+        .table-responsive {
+            max-height: 450px;
+            overflow-y: auto;
+            border-radius: 0.75rem;
+        }
+        
+        .table {
+            margin: 0;
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: none;
+            font-weight: 700;
+            color: #374151;
+            padding: 1.25rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .table tbody td {
+            padding: 1.25rem;
+            border-color: #f1f5f9;
+            vertical-align: middle;
+        }
+        
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            transform: scale(1.01);
+        }
+        
+        /* User avatar styling */
+        .user-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Progress bars */
+        .progress {
+            border-radius: 1rem;
+            background: #f1f5f9;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            border-radius: 1rem;
+            transition: all 0.6s ease;
+        }
+        
+        /* Quick actions */
+        .btn {
+            border-radius: 0.75rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Responsive adjustments */
+        @@media (max-width: 991.98px) {
+            .col-lg-8.col-md-7 {
+                flex: 0 0 auto;
+                width: 100%;
+                margin-bottom: 1.5rem;
+            }
+            
+            .col-lg-4.col-md-5 {
+                flex: 0 0 auto;
+                width: 100%;
+            }
+            
+            .stats-card {
+                margin-bottom: 1.5rem;
+            }
+        }
+        
+        @@media (max-width: 768px) {
+            .stats-number {
+                font-size: 2rem;
+            }
+            
+            .stats-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .card-header {
+                padding: 1rem;
+            }
+            
+            .table thead th,
+            .table tbody td {
+                padding: 1rem;
+            }
+        }
+        
+        /* Animation for stats numbers */
+        @@keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stats-number {
+            animation: countUp 0.8s ease-out;
+        }
+        
+        /* Badge enhancements */
+        .badge {
+            border-radius: 0.5rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+        }
+        
+        .badge.bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Counter animation for stats numbers
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stats-number');
+            
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent);
+                const increment = target / 50; // Animation duration control
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        counter.textContent = Math.floor(current);
+                    }
+                }, 30);
+            });
+        }
+        
+        // Animate progress bars
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        }
+        
+        // Initialize animations when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Delay animations slightly for better effect
+            setTimeout(() => {
+                animateCounters();
+                animateProgressBars();
+            }, 300);
+            
+            // Add stagger animation to stats cards
+            const statsCards = document.querySelectorAll('.stats-card');
+            statsCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.style.animation = 'slideInUp 0.6s ease-out forwards';
+            });
+        });
+        
+        // Add CSS animation for slide in effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .stats-card {
+                opacity: 0;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

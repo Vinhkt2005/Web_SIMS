@@ -2,50 +2,260 @@
 @{
     ViewData["Title"] = "Trang chủ Sinh viên";
 }
-<div class="container py-4">
-    <h2 class="mb-4"><i class="fas fa-user-graduate me-2"></i>Trang chủ Sinh viên</h2>
+
+<div class="container-fluid py-4">
+    <!-- Welcome Header -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body text-center">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Môn đang học</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CurrentCourses</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body text-center">
-                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">GPA hiện tại</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CurrentGpa.ToString("F2")</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body text-center">
-                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tổng tín chỉ</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalCredits</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body text-center">
-                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Môn hoàn thành</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.CompletedCourses</div>
+        <div class="col-12">
+            <div class="welcome-header p-4 rounded-3 text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-2"><i class="fas fa-user-graduate me-3"></i>Chào mừng trở lại!</h1>
+                        <p class="mb-0 fs-5 opacity-90">Chúc bạn có một ngày học tập hiệu quả</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="current-time">
+                            <i class="fas fa-clock me-2"></i>
+                            <span id="currentTime"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="d-flex gap-3">
-        <a class="btn btn-primary" asp-action="Courses"><i class="fas fa-book-open me-2"></i>Môn học của tôi</a>
-        <a class="btn btn-secondary" asp-action="Profile"><i class="fas fa-id-card me-2"></i>Hồ sơ</a>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stats-icon mb-3">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="stats-label">Môn đang học</div>
+                    <div class="stats-value">@Model.CurrentCourses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stats-icon mb-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stats-label">GPA hiện tại</div>
+                    <div class="stats-value">@Model.CurrentGpa.ToString("F2")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stats-icon mb-3">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="stats-label">Tổng tín chỉ</div>
+                    <div class="stats-value">@Model.TotalCredits</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stats-icon mb-3">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stats-label">Môn hoàn thành</div>
+                    <div class="stats-value">@Model.CompletedCourses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a class="btn btn-primary btn-lg w-100 action-btn" asp-action="Courses">
+                                <i class="fas fa-book-open me-3"></i>
+                                <div>
+                                    <div class="fw-bold">Môn học của tôi</div>
+                                    <small class="opacity-75">Xem danh sách môn học đang theo học</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a class="btn btn-outline-primary btn-lg w-100 action-btn" asp-action="Profile">
+                                <i class="fas fa-id-card me-3"></i>
+                                <div>
+                                    <div class="fw-bold">Hồ sơ cá nhân</div>
+                                    <small class="opacity-75">Cập nhật thông tin cá nhân</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <style>
-    .border-left-primary { border-left: 0.25rem solid #4e73df !important; }
-    .border-left-success { border-left: 0.25rem solid #1cc88a !important; }
-    .border-left-info { border-left: 0.25rem solid #36b9cc !important; }
-    .border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+/* 🎨 Student Portal Home Styles */
+.welcome-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px !important;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.current-time {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.stats-card {
+    transition: all 0.3s ease;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+}
+
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stats-card:nth-child(1) .stats-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.stats-card:nth-child(2) .stats-icon {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.stats-card:nth-child(3) .stats-icon {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.stats-card:nth-child(4) .stats-icon {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+}
+
+.stats-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.stats-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3436;
+}
+
+.action-btn {
+    text-align: left;
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.action-btn i {
+    font-size: 2rem;
+    width: 60px;
+}
+
+.card {
+    border-radius: 12px !important;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Animation cho thời gian */
+#currentTime {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .welcome-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-header p {
+        font-size: 1rem;
+    }
+    
+    .current-time {
+        text-align: center !important;
+        margin-top: 1rem;
+    }
+    
+    .stats-value {
+        font-size: 1.5rem;
+    }
+    
+    .action-btn {
+        text-align: center;
+    }
+    
+    .action-btn i {
+        width: auto;
+        margin-right: 1rem;
+    }
+}
 </style>
+
+<script>
+// Hiển thị thời gian hiện tại
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const dateString = now.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    document.getElementById('currentTime').innerHTML = `${timeString}<br><small>${dateString}</small>`;
+}
+
+// Cập nhật thời gian mỗi giây
+setInterval(updateTime, 1000);
+updateTime(); // Gọi ngay lập tức
+</script>

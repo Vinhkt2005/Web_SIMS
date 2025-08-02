@@ -2,121 +2,317 @@
 
 @{
     ViewData["Title"] = "Thêm đăng ký mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-user-plus me-2"></i>Thêm đăng ký mới
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/enrollments">Quản lý Đăng ký</a></li>
+                <li class="breadcrumb-item active">Thêm mới</li>
+            </ol>
+        </nav>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Quay lại
+    </a>
+</div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-user me-2"></i>Thông tin sinh viên
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        <i class="fas fa-user-graduate me-2"></i>Sinh viên
-                                    </label>
-                                    <select name="StudentId" class="form-select" required>
-                                        <option value="">Chọn sinh viên</option>
-                                        @foreach (var student in ViewBag.Students)
-                                        {
-                                            <option value="@student.Value">@student.Text</option>
-                                        }
-                                    </select>
-                                    <span class="text-danger small">Vui lòng chọn sinh viên</span>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-book me-2"></i>Thông tin khóa học
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        <i class="fas fa-graduation-cap me-2"></i>Khóa học
-                                    </label>
-                                    <select name="CourseId" class="form-select" required>
-                                        <option value="">Chọn khóa học</option>
-                                        @foreach (var course in ViewBag.Courses)
-                                        {
-                                            <option value="@course.Value">@course.Text</option>
-                                        }
-                                    </select>
-                                    <span class="text-danger small">Vui lòng chọn khóa học</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-sticky-note me-2"></i>Ghi chú
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label asp-for="Notes" class="form-label fw-semibold">
-                                        <i class="fas fa-comment me-2"></i>Ghi chú
-                                    </label>
-                                    <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Ghi chú về đăng ký (nếu có)"></textarea>
-                                    <span asp-validation-for="Notes" class="text-danger small"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a asp-action="Index" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
-                                    </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-2"></i>Lưu đăng ký
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+<!-- Form Card -->
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Thêm Đăng ký mới
+                </h5>
             </div>
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                <div class="card-body p-4">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Progress Steps -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="step-item active">
+                                    <div class="step-icon">
+                                        <i class="fas fa-user-graduate"></i>
+                                    </div>
+                                    <span class="step-label">Chọn sinh viên</span>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item">
+                                    <div class="step-icon">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <span class="step-label">Chọn khóa học</span>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step-item">
+                                    <div class="step-icon">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <span class="step-label">Hoàn thành</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Thông tin sinh viên -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h6 class="form-section-title">
+                                    <i class="fas fa-user-graduate me-2"></i>Thông tin sinh viên
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label required">Sinh viên</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user-graduate"></i>
+                                        </span>
+                                        <select asp-for="StudentId" class="form-control" asp-items="ViewBag.Students" required>
+                                            <option value="">-- Chọn sinh viên --</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="StudentId" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        Chọn sinh viên muốn đăng ký khóa học
+                                    </small>
+                                </div>
+
+                                <div class="mb-3" id="student-info" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <h6><i class="fas fa-info-circle me-2"></i>Thông tin sinh viên</h6>
+                                        <div id="student-details"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin khóa học -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h6 class="form-section-title">
+                                    <i class="fas fa-book me-2"></i>Thông tin khóa học
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label required">Khóa học</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-book"></i>
+                                        </span>
+                                        <select asp-for="CourseId" class="form-control" asp-items="ViewBag.Courses" required>
+                                            <option value="">-- Chọn khóa học --</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="CourseId" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        Chọn khóa học muốn đăng ký
+                                    </small>
+                                </div>
+
+                                <div class="mb-3" id="course-info" style="display: none;">
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-info-circle me-2"></i>Thông tin khóa học</h6>
+                                        <div id="course-details"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-section">
+                                <h6 class="form-section-title">
+                                    <i class="fas fa-sticky-note me-2"></i>Ghi chú bổ sung
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">Ghi chú</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-comment"></i>
+                                        </span>
+                                        <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Ghi chú về đăng ký (nếu có)"></textarea>
+                                    </div>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        Thêm ghi chú nếu cần thiết
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
+                                <i class="fas fa-save"></i> Lưu đăng ký
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary ms-2">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Các trường có dấu * là bắt buộc
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
     <script>
-        // Auto-submit form when both student and course are selected
-        document.querySelectorAll('select[name="StudentId"], select[name="CourseId"]').forEach(function(select) {
-            select.addEventListener('change', function() {
-                const studentId = document.querySelector('select[name="StudentId"]').value;
-                const courseId = document.querySelector('select[name="CourseId"]').value;
-
-                if (studentId && courseId) {
-                    // Enable submit button
-                    document.querySelector('button[type="submit"]').disabled = false;
+        $(document).ready(function() {
+            var $studentSelect = $('#StudentId');
+            var $courseSelect = $('#CourseId');
+            var $studentInfo = $('#student-info');
+            var $courseInfo = $('#course-info');
+            
+            console.log('Form initialized successfully');
+            
+            // Handle student selection
+            $studentSelect.on('change', function() {
+                var studentId = $(this).val();
+                var studentText = $(this).find('option:selected').text();
+                
+                if (studentId && studentId !== '') {
+                    $('#student-details').html('<strong>Sinh viên:</strong> ' + studentText);
+                    $studentInfo.show();
+                    $('.step-item').eq(0).addClass('completed');
+                    $('.step-item').eq(1).addClass('active');
                 } else {
-                    // Disable submit button
-                    document.querySelector('button[type="submit"]').disabled = true;
+                    $studentInfo.hide();
+                    $('.step-item').eq(0).removeClass('completed');
+                    $('.step-item').eq(1).removeClass('active');
                 }
             });
-        });
 
-        // Initially disable submit button
-        document.querySelector('button[type="submit"]').disabled = true;
+            // Handle course selection
+            $courseSelect.on('change', function() {
+                var courseId = $(this).val();
+                var courseText = $(this).find('option:selected').text();
+                
+                if (courseId && courseId !== '') {
+                    $('#course-details').html('<strong>Khóa học:</strong> ' + courseText);
+                    $courseInfo.show();
+                    $('.step-item').eq(1).addClass('completed');
+                    $('.step-item').eq(2).addClass('active completed');
+                } else {
+                    $courseInfo.hide();
+                    $('.step-item').eq(1).removeClass('completed');
+                    $('.step-item').eq(2).removeClass('active completed');
+                }
+            });
+
+            // Form submission
+            $('form').on('submit', function(e) {
+                var studentId = $studentSelect.val();
+                var courseId = $courseSelect.val();
+                
+                if (!studentId || !courseId) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn sinh viên và khóa học!');
+                    return false;
+                }
+                
+                // Show loading state
+                $('#submit-btn').html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+                $('#submit-btn').prop('disabled', true);
+            });
+        });
     </script>
+    
+    <style>
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active .step-icon {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .step-item.completed .step-icon {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .step-line {
+            height: 2px;
+            background-color: #e9ecef;
+            flex: 1;
+            margin: 0 20px;
+            margin-top: 25px;
+        }
+
+        .step-item.completed + .step-line {
+            background-color: #28a745;
+        }
+
+        .step-label {
+            font-size: 14px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .step-item.active .step-label,
+        .step-item.completed .step-label {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-section-title {
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .required::after {
+            content: " *";
+            color: #dc3545;
+        }
+    </style>
 }

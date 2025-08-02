@@ -1,0 +1,457 @@
+@model Web_SIMS.Models.Course
+
+@{
+    ViewData["Title"] = "Chỉnh sửa khóa học";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-edit.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Khóa học</a></li>
+                <li class="breadcrumb-item active">Chỉnh sửa khóa học</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit me-2 text-warning"></i>Chỉnh sửa khóa học
+        </h1>
+        <p class="text-muted mb-0">Cập nhật thông tin chi tiết của khóa học @Model.CourseName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Details" asp-route-id="@Model.CourseId" class="btn btn-outline-info">
+            <i class="fas fa-eye me-2"></i>Xem chi tiết
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Course Edit Form -->
+<div class="row">
+    <div class="col-12">
+        <div class="edit-form-container">
+            <!-- Course Profile Header -->
+            <div class="course-edit-header">
+                <div class="course-avatar-edit">
+                    <div class="avatar-circle-edit">
+                        <span class="avatar-text-edit">@Model.CourseCode.Substring(0, Math.Min(3, Model.CourseCode.Length)).ToUpper()</span>
+                    </div>
+                    <div class="status-indicator-edit @(Model.IsActive ? "active" : "inactive")"></div>
+                </div>
+                <div class="course-info-edit">
+                    <h3 class="course-name-edit">@Model.CourseName</h3>
+                    <div class="course-meta-edit">
+                        <span class="course-code-edit">@Model.CourseCode</span>
+                        <span class="separator">•</span>
+                        <span class="course-credits-edit">@Model.Credits tín chỉ</span>
+                        <span class="separator">•</span>
+                        <span class="course-semester-edit">@Model.Semester - @Model.AcademicYear</span>
+                    </div>
+                </div>
+                <div class="edit-badge">
+                    <i class="fas fa-edit me-1"></i>
+                    Đang chỉnh sửa
+                </div>
+            </div>
+            <!-- Form Content -->
+            <form asp-action="Edit" asp-route-id="@Model.CourseId" method="post" class="edit-form" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-modern" role="alert"></div>
+                <input type="hidden" asp-for="CourseId" />
+                <input type="hidden" asp-for="CreatedDate" />
+                <input type="hidden" asp-for="Instructor" />
+
+                <div class="form-sections">
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon basic">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="section-title">
+                                <h4>Thông tin cơ bản</h4>
+                                <p>Cập nhật thông tin cơ bản của khóa học</p>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="CourseCode" class="form-label-modern">
+                                            <i class="fas fa-id-card"></i>
+                                            Mã khóa học
+                                        </label>
+                                        <input asp-for="CourseCode" class="form-control-modern" placeholder="VD: CS101" />
+                                        <span asp-validation-for="CourseCode" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="CourseName" class="form-label-modern">
+                                            <i class="fas fa-book"></i>
+                                            Tên khóa học
+                                        </label>
+                                        <input asp-for="CourseName" class="form-control-modern" placeholder="Nhập tên khóa học đầy đủ" />
+                                        <span asp-validation-for="CourseName" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Credits" class="form-label-modern">
+                                            <i class="fas fa-graduation-cap"></i>
+                                            Số tín chỉ
+                                        </label>
+                                        <input asp-for="Credits" type="number" class="form-control-modern" min="1" max="10" placeholder="1-10 tín chỉ" />
+                                        <span asp-validation-for="Credits" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label class="form-label-modern">
+                                            <i class="fas fa-toggle-on"></i>
+                                            Trạng thái hoạt động
+                                        </label>
+                                        <div class="toggle-switch-container">
+                                            <label class="toggle-switch">
+                                                <input asp-for="IsActive" type="checkbox" />
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                            <span class="toggle-label">Khóa học đang hoạt động</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Description" class="form-label-modern">
+                                            <i class="fas fa-align-left"></i>
+                                            Mô tả khóa học
+                                        </label>
+                                        <textarea asp-for="Description" class="form-control-modern textarea-modern" rows="4" placeholder="Mô tả chi tiết về nội dung và mục tiêu của khóa học"></textarea>
+                                        <span asp-validation-for="Description" class="validation-message"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Section -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon config">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="section-title">
+                                <h4>Cấu hình khóa học</h4>
+                                <p>Thiết lập thông số và phân công giảng viên</p>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="MaxStudents" class="form-label-modern">
+                                            <i class="fas fa-users"></i>
+                                            Số sinh viên tối đa
+                                        </label>
+                                        <input asp-for="MaxStudents" type="number" class="form-control-modern" min="1" max="200" placeholder="VD: 50 sinh viên" />
+                                        <span asp-validation-for="MaxStudents" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Semester" class="form-label-modern">
+                                            <i class="fas fa-calendar"></i>
+                                            Học kỳ
+                                        </label>
+                                        <select asp-for="Semester" class="form-select-modern">
+                                            <option value="">Chọn học kỳ</option>
+                                            <option value="Học kỳ 1">Học kỳ 1</option>
+                                            <option value="Học kỳ 2">Học kỳ 2</option>
+                                            <option value="Học kỳ 3">Học kỳ 3</option>
+                                            <option value="Học kỳ hè">Học kỳ hè</option>
+                                        </select>
+                                        <span asp-validation-for="Semester" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="AcademicYear" class="form-label-modern">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            Năm học
+                                        </label>
+                                        <select asp-for="AcademicYear" class="form-select-modern">
+                                            <option value="">Chọn năm học</option>
+                                            <option value="2024-2025">2024-2025</option>
+                                            <option value="2023-2024">2023-2024</option>
+                                            <option value="2022-2023">2022-2023</option>
+                                            <option value="2021-2022">2021-2022</option>
+                                        </select>
+                                        <span asp-validation-for="AcademicYear" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="FacultyId" class="form-label-modern">
+                                            <i class="fas fa-chalkboard-teacher"></i>
+                                            Giảng viên phụ trách
+                                        </label>
+                                        <select asp-for="FacultyId" class="form-select-modern">
+                                            <option value="">Chọn giảng viên</option>
+                                            @if (ViewBag.Faculties != null)
+                                            {
+                                                @foreach (var faculty in ViewBag.Faculties)
+                                                {
+                                                    <option value="@faculty.FacultyId">@faculty.FullName (@faculty.FacultyCode)</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="FacultyId" class="validation-message"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <div class="action-buttons">
+                        <button type="button" class="btn-modern btn-secondary" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Quay lại</span>
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.CourseId" class="btn-modern btn-info">
+                            <i class="fas fa-eye"></i>
+                            <span>Xem chi tiết</span>
+                        </a>
+                        <button type="submit" class="btn-modern btn-primary">
+                            <i class="fas fa-save"></i>
+                            <span>Cập nhật khóa học</span>
+                        </button>
+                    </div>
+                    <div class="form-info">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Tạo ngày: @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                        @if (Model.UpdatedDate.HasValue)
+                        {
+                            <small class="text-muted ms-3">
+                                <i class="fas fa-edit me-1"></i>
+                                Cập nhật: @Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-format course code
+            const courseCodeInput = document.getElementById('CourseCode');
+            if (courseCodeInput) {
+                courseCodeInput.addEventListener('input', function(e) {
+                    let value = e.target.value.toUpperCase();
+                    e.target.value = value;
+                    
+                    // Add visual feedback
+                    if (value.length >= 3) {
+                        e.target.style.borderColor = '#10b981';
+                    } else {
+                        e.target.style.borderColor = '#e5e7eb';
+                    }
+                });
+            }
+
+            // Auto-format max students
+            const maxStudentsInput = document.getElementById('MaxStudents');
+            if (maxStudentsInput) {
+                maxStudentsInput.addEventListener('input', function(e) {
+                    let value = parseInt(e.target.value);
+                    if (value > 200) {
+                        e.target.value = 200;
+                    } else if (value < 1) {
+                        e.target.value = 1;
+                    }
+                });
+            }
+
+            // Form validation enhancement
+            const form = document.querySelector('.edit-form');
+            const submitBtn = document.querySelector('.btn-primary');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(e) {
+                    // Add loading state
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                    
+                    // Show loading text
+                    const btnText = submitBtn.querySelector('span');
+                    const originalText = btnText.textContent;
+                    btnText.textContent = 'Đang cập nhật...';
+                    
+                    // If validation fails, restore button
+                    setTimeout(() => {
+                        if (!form.checkValidity()) {
+                            submitBtn.classList.remove('loading');
+                            submitBtn.disabled = false;
+                            btnText.textContent = originalText;
+                        }
+                    }, 100);
+                });
+            }
+
+            // Enhanced form interactions
+            const formControls = document.querySelectorAll('.form-control-modern, .form-select-modern, .textarea-modern');
+            formControls.forEach(control => {
+                // Add focus animations
+                control.addEventListener('focus', function() {
+                    this.parentElement.classList.add('focused');
+                });
+                
+                control.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('focused');
+                    
+                    // Add validation visual feedback
+                    if (this.value.trim() !== '') {
+                        this.parentElement.classList.add('has-value');
+                    } else {
+                        this.parentElement.classList.remove('has-value');
+                    }
+                });
+                
+                // Initial state check
+                if (control.value.trim() !== '') {
+                    control.parentElement.classList.add('has-value');
+                }
+            });
+
+            // Toggle switch enhancement
+            const toggleSwitch = document.querySelector('.toggle-switch input');
+            if (toggleSwitch) {
+                toggleSwitch.addEventListener('change', function() {
+                    const container = this.closest('.toggle-switch-container');
+                    const label = container.querySelector('.toggle-label');
+                    
+                    if (this.checked) {
+                        container.style.borderColor = '#10b981';
+                        container.style.backgroundColor = '#f0fdf4';
+                        label.textContent = 'Khóa học đang hoạt động';
+                    } else {
+                        container.style.borderColor = '#e5e7eb';
+                        container.style.backgroundColor = 'white';
+                        label.textContent = 'Khóa học tạm dừng';
+                    }
+                });
+                
+                // Initial state
+                const container = toggleSwitch.closest('.toggle-switch-container');
+                const label = container.querySelector('.toggle-label');
+                if (toggleSwitch.checked) {
+                    container.style.borderColor = '#10b981';
+                    container.style.backgroundColor = '#f0fdf4';
+                    label.textContent = 'Khóa học đang hoạt động';
+                }
+            }
+
+            // Faculty selection enhancement
+            const facultySelect = document.getElementById('FacultyId');
+            if (facultySelect) {
+                facultySelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.value) {
+                        // Show selected faculty info
+                        const facultyInfo = selectedOption.textContent;
+                        console.log('Selected faculty:', facultyInfo);
+                    }
+                });
+            }
+
+            // Course name auto-capitalize
+            const courseNameInput = document.getElementById('CourseName');
+            if (courseNameInput) {
+                courseNameInput.addEventListener('blur', function() {
+                    // Capitalize first letter of each word
+                    let value = this.value.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                    this.value = value;
+                });
+            }
+
+            // Credits validation
+            const creditsInput = document.getElementById('Credits');
+            if (creditsInput) {
+                creditsInput.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    const validationMsg = this.parentElement.querySelector('.validation-message');
+                    
+                    if (value < 1 || value > 10) {
+                        this.style.borderColor = '#dc2626';
+                        if (validationMsg) {
+                            validationMsg.textContent = 'Số tín chỉ phải từ 1 đến 10';
+                        }
+                    } else {
+                        this.style.borderColor = '#10b981';
+                        if (validationMsg) {
+                            validationMsg.textContent = '';
+                        }
+                    }
+                });
+            }
+
+            // Auto-save draft functionality (optional)
+            let autoSaveTimer;
+            const autoSaveInputs = document.querySelectorAll('input, select, textarea');
+            
+            autoSaveInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimer);
+                    autoSaveTimer = setTimeout(() => {
+                        // Save draft to localStorage
+                        const formData = new FormData(form);
+                        const draftData = {};
+                        for (let [key, value] of formData.entries()) {
+                            draftData[key] = value;
+                        }
+                        localStorage.setItem('course_edit_draft_@Model.CourseId', JSON.stringify(draftData));
+                        
+                        // Show auto-save indicator
+                        showAutoSaveIndicator();
+                    }, 2000);
+                });
+            });
+
+            function showAutoSaveIndicator() {
+                const indicator = document.createElement('div');
+                indicator.className = 'auto-save-indicator';
+                indicator.innerHTML = '<i class="fas fa-check-circle me-1"></i>Đã lưu tự động';
+                document.body.appendChild(indicator);
+                
+                setTimeout(() => {
+                    indicator.remove();
+                }, 2000);
+            }
+        });
+    </script>
+}

@@ -2,40 +2,184 @@
     ViewData["Title"] = "Trang chủ";
 }
 
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        z-index: 1;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(45deg, #fff, #f8f9fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+        animation: fadeInUp 1s ease-out;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin-bottom: 3rem;
+        opacity: 0.95;
+        animation: fadeInUp 1s ease-out 0.2s both;
+    }
+    
+    .hero-buttons {
+        animation: fadeInUp 1s ease-out 0.4s both;
+    }
+    
+    .hero-image {
+        animation: fadeInRight 1s ease-out 0.6s both;
+        position: relative;
+    }
+    
+    .hero-image::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 300px;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        border-radius: 50%;
+        z-index: -1;
+    }
+    
+    .btn-hero {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .btn-hero:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+    
+    .btn-hero-primary {
+        background: linear-gradient(45deg, #fff, #f8f9fa);
+        color: #667eea;
+        border: none;
+    }
+    
+    .btn-hero-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255,255,255,0.8);
+    }
+    
+    .btn-hero-outline:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: white;
+        color: white;
+    }
+    
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @@keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .floating-icon {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    @@media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+        .hero-section {
+            min-height: 80vh;
+            padding: 60px 0;
+        }
+    }
+</style>
+
 <!-- Hero Section -->
-<div class="hero-section bg-gradient-primary text-white py-5">
-    <div class="container">
+<div class="hero-section text-white">
+    <div class="container hero-content">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">
+                <div class="hero-title">
                     <i class="fas fa-graduation-cap me-3"></i>
                     Web SIMS
-                </h1>
-                <p class="lead mb-4">
-                    Hệ thống Quản lý Thông tin Sinh viên hiện đại,
+                </div>
+                <p class="hero-subtitle">
+                    Hệ thống Quản lý Thông tin Sinh viên hiện đại, 
                     giúp quản lý hiệu quả thông tin sinh viên, khóa học và điểm số.
                 </p>
-                <div class="d-flex gap-3">
+                <div class="d-flex flex-column flex-sm-row gap-3 hero-buttons">
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-light btn-lg">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-hero btn-hero-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i>Vào Dashboard
                         </a>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-lg">
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-hero btn-hero-primary">
                             <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
                         </a>
                     }
-                    <a href="#features" class="btn btn-outline-light btn-lg">
+                    <a href="#features" class="btn btn-hero btn-hero-outline">
                         <i class="fas fa-info-circle me-2"></i>Tìm hiểu thêm
                     </a>
                 </div>
             </div>
             <div class="col-lg-6 text-center">
                 <div class="hero-image">
-                    <i class="fas fa-users fa-10x opacity-75"></i>
+                    <i class="fas fa-users fa-10x opacity-75 floating-icon"></i>
                 </div>
             </div>
         </div>
@@ -43,124 +187,611 @@
 </div>
 
 <!-- Features Section -->
-<div id="features" class="py-5 bg-light">
+<div id="features" class="py-5" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
-                <h2 class="fw-bold mb-3">Tính năng nổi bật</h2>
-                <p class="text-muted lead">Hệ thống được thiết kế với các tính năng hiện đại và thân thiện</p>
+                <h2 class="fw-bold mb-3" style="color: #2d3748; font-size: 3rem;">Tính năng nổi bật</h2>
+                <p class="text-muted lead" style="font-size: 1.3rem;">Hệ thống được thiết kế với các tính năng hiện đại và thân thiện</p>
             </div>
         </div>
 
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mb-3">
-                            <i class="fas fa-users fa-3x text-primary"></i>
+                <div class="feature-card">
+                    <div class="feature-card-inner">
+                        <div class="feature-icon-wrapper">
+                            <i class="fas fa-users feature-icon-main"></i>
                         </div>
-                        <h5 class="card-title fw-bold">Quản lý Sinh viên</h5>
-                        <p class="card-text text-muted">
+                        <h5 class="feature-title">Quản lý Sinh viên</h5>
+                        <p class="feature-description">
                             Quản lý thông tin sinh viên một cách hiệu quả với giao diện thân thiện và dễ sử dụng.
                         </p>
+                        <div class="feature-overlay">
+                            <div class="feature-overlay-content">
+                                <i class="fas fa-arrow-right"></i>
+                                <span>Khám phá</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mb-3">
-                            <i class="fas fa-book fa-3x text-success"></i>
+                <div class="feature-card">
+                    <div class="feature-card-inner">
+                        <div class="feature-icon-wrapper">
+                            <i class="fas fa-book feature-icon-main"></i>
                         </div>
-                        <h5 class="card-title fw-bold">Quản lý Khóa học</h5>
-                        <p class="card-text text-muted">
+                        <h5 class="feature-title">Quản lý Khóa học</h5>
+                        <p class="feature-description">
                             Tạo và quản lý các khóa học với thông tin chi tiết về giảng viên và số lượng sinh viên.
                         </p>
+                        <div class="feature-overlay">
+                            <div class="feature-overlay-content">
+                                <i class="fas fa-arrow-right"></i>
+                                <span>Khám phá</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mb-3">
-                            <i class="fas fa-chart-line fa-3x text-info"></i>
+                <div class="feature-card">
+                    <div class="feature-card-inner">
+                        <div class="feature-icon-wrapper">
+                            <i class="fas fa-chart-line feature-icon-main"></i>
                         </div>
-                        <h5 class="card-title fw-bold">Theo dõi Điểm số</h5>
-                        <p class="card-text text-muted">
+                        <h5 class="feature-title">Theo dõi Điểm số</h5>
+                        <p class="feature-description">
                             Theo dõi và quản lý điểm số sinh viên với báo cáo chi tiết và thống kê trực quan.
                         </p>
+                        <div class="feature-overlay">
+                            <div class="feature-overlay-content">
+                                <i class="fas fa-arrow-right"></i>
+                                <span>Khám phá</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .feature-card {
+        height: 100%;
+        perspective: 1000px;
+    }
+    
+    .feature-card-inner {
+        position: relative;
+        height: 300px;
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.4s ease;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    
+    .feature-card:hover .feature-card-inner {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    }
+    
+    .feature-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 25px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .feature-icon-main {
+        font-size: 2.5rem;
+        color: white;
+    }
+    
+    .feature-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-description {
+        color: #718096;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+    
+    .feature-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-overlay {
+        opacity: 1;
+    }
+    
+    .feature-overlay-content {
+        color: white;
+        text-align: center;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-overlay-content {
+        transform: translateY(0);
+    }
+    
+    .feature-overlay-content i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .feature-overlay-content span {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+</style>
 
 <!-- Statistics Section -->
-<div class="py-5">
-    <div class="container">
+<div class="py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"dots\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><circle cx=\"10\" cy=\"10\" r=\"1\" fill=\"white\" opacity=\"0.1\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23dots)\"/></svg>'); z-index: 1;"></div>
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="fw-bold mb-3 text-white" style="font-size: 3rem;">Thống kê hệ thống</h2>
+                <p class="text-white-50 lead" style="font-size: 1.3rem;">Những con số ấn tượng của Web SIMS</p>
+            </div>
+        </div>
         <div class="row text-center">
             <div class="col-md-3 mb-4">
-                <div class="stat-item">
-                    <div class="stat-icon mb-3">
-                        <i class="fas fa-user-graduate fa-3x text-primary"></i>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-user-graduate stat-icon"></i>
                     </div>
-                    <h3 class="fw-bold text-primary">500+</h3>
-                    <p class="text-muted">Sinh viên</p>
+                    <h3 class="stat-number" data-target="500">0</h3>
+                    <p class="stat-label">Sinh viên</p>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" style="--progress: 85%"></div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-md-3 mb-4">
-                <div class="stat-item">
-                    <div class="stat-icon mb-3">
-                        <i class="fas fa-book-open fa-3x text-success"></i>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-book-open stat-icon"></i>
                     </div>
-                    <h3 class="fw-bold text-success">50+</h3>
-                    <p class="text-muted">Khóa học</p>
+                    <h3 class="stat-number" data-target="50">0</h3>
+                    <p class="stat-label">Khóa học</p>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" style="--progress: 70%"></div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-md-3 mb-4">
-                <div class="stat-item">
-                    <div class="stat-icon mb-3">
-                        <i class="fas fa-chalkboard-teacher fa-3x text-info"></i>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-chalkboard-teacher stat-icon"></i>
                     </div>
-                    <h3 class="fw-bold text-info">30+</h3>
-                    <p class="text-muted">Giảng viên</p>
+                    <h3 class="stat-number" data-target="30">0</h3>
+                    <p class="stat-label">Giảng viên</p>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" style="--progress: 60%"></div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-md-3 mb-4">
-                <div class="stat-item">
-                    <div class="stat-icon mb-3">
-                        <i class="fas fa-award fa-3x text-warning"></i>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-award stat-icon"></i>
                     </div>
-                    <h3 class="fw-bold text-warning">95%</h3>
-                    <p class="text-muted">Hài lòng</p>
+                    <h3 class="stat-number" data-target="95">0</h3>
+                    <p class="stat-label">% Hài lòng</p>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" style="--progress: 95%"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 40px 20px;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover .stat-icon-wrapper {
+        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        color: white;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 10px;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    .stat-progress {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .stat-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0.8));
+        border-radius: 2px;
+        width: 0;
+        transition: width 2s ease-in-out;
+        animation: progressAnimation 2s ease-in-out forwards;
+    }
+    
+    @@keyframes progressAnimation {
+        to {
+            width: var(--progress);
+        }
+    }
+</style>
+
+<script>
+    // Counter animation
+    function animateCounters() {
+        const counters = document.querySelectorAll('.stat-number');
+        
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const increment = target / 100;
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    counter.textContent = target + (target === 95 ? '%' : '+');
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current) + (target === 95 ? '%' : '+');
+                }
+            }, 20);
+        });
+    }
+    
+    // Trigger animation when section is visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounters();
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const statsSection = document.querySelector('.stat-card').closest('.py-5');
+        observer.observe(statsSection);
+    });
+</script>
+
 <!-- Call to Action -->
-<div class="bg-primary text-white py-5">
+<div class="cta-section">
     <div class="container text-center">
-        <h2 class="fw-bold mb-3">Sẵn sàng bắt đầu?</h2>
-        <p class="lead mb-4">Tham gia hệ thống Web SIMS để quản lý thông tin sinh viên hiệu quả hơn</p>
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-light btn-lg">
-                <i class="fas fa-tachometer-alt me-2"></i>Vào Dashboard
-            </a>
-        }
-        else
-        {
-            <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-lg">
-                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập ngay
-            </a>
-        }
+        <div class="cta-content">
+            <div class="cta-icon mb-4">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <h2 class="cta-title mb-4">Sẵn sàng bắt đầu hành trình?</h2>
+            <p class="cta-subtitle mb-5">
+                Tham gia hệ thống Web SIMS để quản lý thông tin sinh viên hiệu quả hơn.<br>
+                Trải nghiệm ngay hôm nay và khám phá sức mạnh của công nghệ hiện đại.
+            </p>
+            <div class="cta-buttons">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-cta btn-cta-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        <span>Vào Dashboard</span>
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-cta btn-cta-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        <span>Đăng nhập ngay</span>
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                }
+                <a href="#features" class="btn btn-cta btn-cta-outline ms-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>Tìm hiểu thêm</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="cta-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
     </div>
 </div>
+
+<style>
+    .cta-section {
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        padding: 100px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="hexagons" width="50" height="43.4" patternUnits="userSpaceOnUse"><polygon points="25,0 50,14.4 50,28.9 25,43.4 0,28.9 0,14.4" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23hexagons)"/></svg>');
+        z-index: 1;
+    }
+    
+    .cta-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .cta-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+    
+    .cta-icon i {
+        font-size: 3rem;
+        color: white;
+    }
+    
+    .cta-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: white;
+        background: linear-gradient(45deg, #fff, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .cta-subtitle {
+        font-size: 1.3rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.6;
+        font-weight: 300;
+    }
+    
+    .btn-cta {
+        padding: 18px 35px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .btn-cta::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-cta:hover::before {
+        left: 100%;
+    }
+    
+    .btn-cta-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-cta-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .btn-cta-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .btn-cta-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: white;
+        color: white;
+        transform: translateY(-3px);
+    }
+    
+    .cta-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+    }
+    
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: float-particle 6s infinite linear;
+    }
+    
+    .particle:nth-child(1) {
+        left: 10%;
+        animation-delay: 0s;
+    }
+    
+    .particle:nth-child(2) {
+        left: 30%;
+        animation-delay: 1s;
+    }
+    
+    .particle:nth-child(3) {
+        left: 50%;
+        animation-delay: 2s;
+    }
+    
+    .particle:nth-child(4) {
+        left: 70%;
+        animation-delay: 3s;
+    }
+    
+    .particle:nth-child(5) {
+        left: 90%;
+        animation-delay: 4s;
+    }
+    
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    @@keyframes float-particle {
+        0% {
+            transform: translateY(100vh) rotate(0deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-100px) rotate(360deg);
+            opacity: 0;
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .cta-title {
+            font-size: 2.5rem;
+        }
+        .cta-subtitle {
+            font-size: 1.1rem;
+        }
+        .cta-section {
+            padding: 80px 0;
+        }
+        .cta-buttons {
+            flex-direction: column;
+            gap: 15px;
+        }
+        .btn-cta {
+            width: 100%;
+            justify-content: center;
+        }
+        .ms-3 {
+            margin-left: 0 !important;
+        }
+    }
+</style>

@@ -2,165 +2,286 @@
 
 @{
     ViewData["Title"] = "Sửa thông tin sinh viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-user-edit me-2"></i>Sửa thông tin sinh viên
-                    </h6>
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-edit.css" />
+}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý Sinh viên</a></li>
+                <li class="breadcrumb-item active">Chỉnh sửa sinh viên</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-edit me-2 text-warning"></i>Chỉnh sửa thông tin sinh viên
+        </h1>
+        <p class="text-muted mb-0">Cập nhật thông tin chi tiết của sinh viên @Model.FullName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Details" asp-route-id="@Model.StudentId" class="btn btn-outline-info">
+            <i class="fas fa-eye me-2"></i>Xem chi tiết
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Student Edit Form -->
+<div class="row">
+    <div class="col-12">
+        <div class="edit-form-container">
+            <!-- Student Profile Header -->
+            <div class="student-edit-header">
+                <div class="student-avatar-edit">
+                    <div class="avatar-circle-edit">
+                        <span class="avatar-text-edit">@Model.FullName.Substring(0, 1).ToUpper()</span>
+                    </div>
+                    <div class="status-indicator-edit @(Model.IsActive ? "active" : "inactive")"></div>
                 </div>
-                <div class="card-body">
-                    <form asp-action="Edit" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-                        <input type="hidden" asp-for="StudentId" />
+                <div class="student-info-edit">
+                    <h3 class="student-name-edit">@Model.FullName</h3>
+                    <div class="student-meta-edit">
+                        <span class="student-code-edit">@Model.StudentCode</span>
+                        <span class="separator">•</span>
+                        <span class="student-major-edit">@Model.Major</span>
+                    </div>
+                </div>
+                <div class="edit-badge">
+                    <i class="fas fa-edit me-1"></i>
+                    Đang chỉnh sửa
+                </div>
+            </div>
+            <!-- Form Content -->
+            <form asp-action="Edit" method="post" class="edit-form" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-modern" role="alert"></div>
+                <input type="hidden" asp-for="StudentId" />
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-info-circle me-2"></i>Thông tin cơ bản
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label asp-for="StudentCode" class="form-label fw-semibold">
-                                        <i class="fas fa-id-card me-2"></i>Mã sinh viên
-                                    </label>
-                                    <input asp-for="StudentCode" class="form-control" placeholder="VD: SV001" />
-                                    <span asp-validation-for="StudentCode" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="FullName" class="form-label fw-semibold">
-                                        <i class="fas fa-user me-2"></i>Họ và tên
-                                    </label>
-                                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" />
-                                    <span asp-validation-for="FullName" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Email" class="form-label fw-semibold">
-                                        <i class="fas fa-envelope me-2"></i>Email
-                                    </label>
-                                    <input asp-for="Email" type="email" class="form-control" placeholder="example@email.com" />
-                                    <span asp-validation-for="Email" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="PhoneNumber" class="form-label fw-semibold">
-                                        <i class="fas fa-phone me-2"></i>Số điện thoại
-                                    </label>
-                                    <input asp-for="PhoneNumber" class="form-control" placeholder="0123456789" />
-                                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="DateOfBirth" class="form-label fw-semibold">
-                                        <i class="fas fa-calendar me-2"></i>Ngày sinh
-                                    </label>
-                                    <input asp-for="DateOfBirth" type="date" class="form-control" />
-                                    <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
-                                </div>
+                <div class="form-sections">
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon personal">
+                                <i class="fas fa-user"></i>
                             </div>
-
-                            <div class="col-md-6">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-graduation-cap me-2"></i>Thông tin học tập
-                                </h5>
-
-                                <div class="mb-3">
-                                    <label asp-for="Gender" class="form-label fw-semibold">
-                                        <i class="fas fa-venus-mars me-2"></i>Giới tính
-                                    </label>
-                                    <select asp-for="Gender" class="form-select">
-                                        <option value="">Chọn giới tính</option>
-                                        <option value="Nam" selected="@(Model.Gender == "Nam")">Nam</option>
-                                        <option value="Nữ" selected="@(Model.Gender == "Nữ")">Nữ</option>
-                                        <option value="Khác" selected="@(Model.Gender == "Khác")">Khác</option>
-                                    </select>
-                                    <span asp-validation-for="Gender" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Major" class="form-label fw-semibold">
-                                        <i class="fas fa-book me-2"></i>Chuyên ngành
-                                    </label>
-                                    <select asp-for="Major" class="form-select">
-                                        <option value="">Chọn chuyên ngành</option>
-                                        <option value="Công nghệ thông tin" selected="@(Model.Major == "Công nghệ thông tin")">Công nghệ thông tin</option>
-                                        <option value="Kinh tế" selected="@(Model.Major == "Kinh tế")">Kinh tế</option>
-                                        <option value="Kế toán" selected="@(Model.Major == "Kế toán")">Kế toán</option>
-                                        <option value="Tài chính - Ngân hàng" selected="@(Model.Major == "Tài chính - Ngân hàng")">Tài chính - Ngân hàng</option>
-                                        <option value="Quản trị kinh doanh" selected="@(Model.Major == "Quản trị kinh doanh")">Quản trị kinh doanh</option>
-                                        <option value="Luật" selected="@(Model.Major == "Luật")">Luật</option>
-                                        <option value="Y khoa" selected="@(Model.Major == "Y khoa")">Y khoa</option>
-                                        <option value="Sư phạm" selected="@(Model.Major == "Sư phạm")">Sư phạm</option>
-                                        <option value="Khác" selected="@(Model.Major == "Khác")">Khác</option>
-                                    </select>
-                                    <span asp-validation-for="Major" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="AcademicYear" class="form-label fw-semibold">
-                                        <i class="fas fa-calendar-alt me-2"></i>Khóa học
-                                    </label>
-                                    <select asp-for="AcademicYear" class="form-select">
-                                        <option value="">Chọn khóa học</option>
-                                        <option value="2024-2025" selected="@(Model.AcademicYear == "2024-2025")">2024-2025</option>
-                                        <option value="2023-2024" selected="@(Model.AcademicYear == "2023-2024")">2023-2024</option>
-                                        <option value="2022-2023" selected="@(Model.AcademicYear == "2022-2023")">2022-2023</option>
-                                        <option value="2021-2022" selected="@(Model.AcademicYear == "2021-2022")">2021-2022</option>
-                                    </select>
-                                    <span asp-validation-for="AcademicYear" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Address" class="form-label fw-semibold">
-                                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
-                                    </label>
-                                    <textarea asp-for="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ đầy đủ"></textarea>
-                                    <span asp-validation-for="Address" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="IsActive" class="form-label fw-semibold">
-                                        <i class="fas fa-toggle-on me-2"></i>Trạng thái
-                                    </label>
-                                    <div class="form-check">
-                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                        <label asp-for="IsActive" class="form-check-label">
-                                            Sinh viên đang hoạt động
+                            <div class="section-title">
+                                <h4>Thông tin cá nhân</h4>
+                                <p>Cập nhật thông tin cơ bản của sinh viên</p>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="StudentCode" class="form-label-modern">
+                                            <i class="fas fa-id-card"></i>
+                                            Mã sinh viên
                                         </label>
+                                        <input asp-for="StudentCode" class="form-control-modern" placeholder="VD: SV001" />
+                                        <span asp-validation-for="StudentCode" class="validation-message"></span>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label asp-for="Notes" class="form-label fw-semibold">
-                                        <i class="fas fa-sticky-note me-2"></i>Ghi chú
-                                    </label>
-                                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú thêm (nếu có)"></textarea>
-                                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="FullName" class="form-label-modern">
+                                            <i class="fas fa-user"></i>
+                                            Họ và tên
+                                        </label>
+                                        <input asp-for="FullName" class="form-control-modern" placeholder="Nhập họ và tên đầy đủ" />
+                                        <span asp-validation-for="FullName" class="validation-message"></span>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a asp-action="Index" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
-                                    </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-2"></i>Cập nhật
-                                    </button>
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Email" class="form-label-modern">
+                                            <i class="fas fa-envelope"></i>
+                                            Email
+                                        </label>
+                                        <input asp-for="Email" type="email" class="form-control-modern" placeholder="example@email.com" />
+                                        <span asp-validation-for="Email" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="PhoneNumber" class="form-label-modern">
+                                            <i class="fas fa-phone"></i>
+                                            Số điện thoại
+                                        </label>
+                                        <input asp-for="PhoneNumber" class="form-control-modern" placeholder="0123456789" />
+                                        <span asp-validation-for="PhoneNumber" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="DateOfBirth" class="form-label-modern">
+                                            <i class="fas fa-calendar"></i>
+                                            Ngày sinh
+                                        </label>
+                                        <input asp-for="DateOfBirth" type="date" class="form-control-modern" />
+                                        <span asp-validation-for="DateOfBirth" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Gender" class="form-label-modern">
+                                            <i class="fas fa-venus-mars"></i>
+                                            Giới tính
+                                        </label>
+                                        <select asp-for="Gender" class="form-select-modern">
+                                            <option value="">Chọn giới tính</option>
+                                            <option value="Nam" selected="@(Model.Gender == "Nam")">Nam</option>
+                                            <option value="Nữ" selected="@(Model.Gender == "Nữ")">Nữ</option>
+                                            <option value="Khác" selected="@(Model.Gender == "Khác")">Khác</option>
+                                        </select>
+                                        <span asp-validation-for="Gender" class="validation-message"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Academic Information Section -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon academic">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="section-title">
+                                <h4>Thông tin học tập</h4>
+                                <p>Cập nhật thông tin học tập và chuyên ngành</p>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Major" class="form-label-modern">
+                                            <i class="fas fa-book"></i>
+                                            Chuyên ngành
+                                        </label>
+                                        <select asp-for="Major" class="form-select-modern">
+                                            <option value="">Chọn chuyên ngành</option>
+                                            <option value="Công nghệ thông tin" selected="@(Model.Major == "Công nghệ thông tin")">Công nghệ thông tin</option>
+                                            <option value="Kinh tế" selected="@(Model.Major == "Kinh tế")">Kinh tế</option>
+                                            <option value="Kế toán" selected="@(Model.Major == "Kế toán")">Kế toán</option>
+                                            <option value="Tài chính - Ngân hàng" selected="@(Model.Major == "Tài chính - Ngân hàng")">Tài chính - Ngân hàng</option>
+                                            <option value="Quản trị kinh doanh" selected="@(Model.Major == "Quản trị kinh doanh")">Quản trị kinh doanh</option>
+                                            <option value="Luật" selected="@(Model.Major == "Luật")">Luật</option>
+                                            <option value="Y khoa" selected="@(Model.Major == "Y khoa")">Y khoa</option>
+                                            <option value="Sư phạm" selected="@(Model.Major == "Sư phạm")">Sư phạm</option>
+                                            <option value="Khác" selected="@(Model.Major == "Khác")">Khác</option>
+                                        </select>
+                                        <span asp-validation-for="Major" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label asp-for="AcademicYear" class="form-label-modern">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            Khóa học
+                                        </label>
+                                        <select asp-for="AcademicYear" class="form-select-modern">
+                                            <option value="">Chọn khóa học</option>
+                                            <option value="2024-2025" selected="@(Model.AcademicYear == "2024-2025")">2024-2025</option>
+                                            <option value="2023-2024" selected="@(Model.AcademicYear == "2023-2024")">2023-2024</option>
+                                            <option value="2022-2023" selected="@(Model.AcademicYear == "2022-2023")">2022-2023</option>
+                                            <option value="2021-2022" selected="@(Model.AcademicYear == "2021-2022")">2021-2022</option>
+                                        </select>
+                                        <span asp-validation-for="AcademicYear" class="validation-message"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Address" class="form-label-modern">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            Địa chỉ
+                                        </label>
+                                        <textarea asp-for="Address" class="form-control-modern textarea-modern" rows="3" placeholder="Nhập địa chỉ đầy đủ"></textarea>
+                                        <span asp-validation-for="Address" class="validation-message"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status & Notes Section -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon status">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="section-title">
+                                <h4>Trạng thái & Ghi chú</h4>
+                                <p>Cập nhật trạng thái hoạt động và ghi chú</p>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label class="form-label-modern">
+                                            <i class="fas fa-toggle-on"></i>
+                                            Trạng thái hoạt động
+                                        </label>
+                                        <div class="toggle-switch-container">
+                                            <label class="toggle-switch">
+                                                <input asp-for="IsActive" type="checkbox" />
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                            <span class="toggle-label">Sinh viên đang hoạt động</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-group-modern">
+                                        <label asp-for="Notes" class="form-label-modern">
+                                            <i class="fas fa-sticky-note"></i>
+                                            Ghi chú
+                                        </label>
+                                        <textarea asp-for="Notes" class="form-control-modern textarea-modern" rows="3" placeholder="Ghi chú thêm (nếu có)"></textarea>
+                                        <span asp-validation-for="Notes" class="validation-message"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <div class="action-buttons">
+                        <button type="button" class="btn-modern btn-secondary" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Quay lại</span>
+                        </button>
+                        <button type="submit" class="btn-modern btn-primary">
+                            <i class="fas fa-save"></i>
+                            <span>Cập nhật thông tin</span>
+                        </button>
+                    </div>
+                    <div class="form-info">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Tất cả các trường có dấu * là bắt buộc
+                        </small>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -171,19 +292,296 @@
     }
 
     <script>
-        // Auto-format phone number
-        document.getElementById('PhoneNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 10) {
-                value = value.substring(0, 10);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-format phone number
+            const phoneInput = document.getElementById('PhoneNumber');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 10) {
+                        value = value.substring(0, 10);
+                    }
+                    e.target.value = value;
+                    
+                    // Add visual feedback
+                    if (value.length === 10) {
+                        e.target.style.borderColor = '#10b981';
+                    } else {
+                        e.target.style.borderColor = '#e5e7eb';
+                    }
+                });
             }
-            e.target.value = value;
+
+            // Auto-format student code
+            const studentCodeInput = document.getElementById('StudentCode');
+            if (studentCodeInput) {
+                studentCodeInput.addEventListener('input', function(e) {
+                    let value = e.target.value.toUpperCase();
+                    e.target.value = value;
+                });
+            }
+
+            // Form validation enhancement
+            const form = document.querySelector('.edit-form');
+            const submitBtn = document.querySelector('.btn-primary');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(e) {
+                    // Add loading state
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                    
+                    // Show loading text
+                    const btnText = submitBtn.querySelector('span');
+                    const originalText = btnText.textContent;
+                    btnText.textContent = 'Đang cập nhật...';
+                    
+                    // If validation fails, restore button
+                    setTimeout(() => {
+                        if (!form.checkValidity()) {
+                            submitBtn.classList.remove('loading');
+                            submitBtn.disabled = false;
+                            btnText.textContent = originalText;
+                        }
+                    }, 100);
+                });
+            }
+
+            // Add smooth scrolling to validation errors
+            const validationMessages = document.querySelectorAll('.validation-message');
+            if (validationMessages.length > 0) {
+                const firstError = validationMessages[0];
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Enhanced form interactions
+            const formControls = document.querySelectorAll('.form-control-modern, .form-select-modern, .textarea-modern');
+            formControls.forEach(control => {
+                // Add focus animations
+                control.addEventListener('focus', function() {
+                    this.parentElement.classList.add('focused');
+                });
+                
+                control.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('focused');
+                    
+                    // Add validation visual feedback
+                    if (this.value.trim() !== '') {
+                        this.parentElement.classList.add('has-value');
+                    } else {
+                        this.parentElement.classList.remove('has-value');
+                    }
+                });
+                
+                // Initial state check
+                if (control.value.trim() !== '') {
+                    control.parentElement.classList.add('has-value');
+                }
+            });
+
+            // Toggle switch enhancement
+            const toggleSwitch = document.querySelector('.toggle-switch input');
+            if (toggleSwitch) {
+                toggleSwitch.addEventListener('change', function() {
+                    const container = this.closest('.toggle-switch-container');
+                    const label = container.querySelector('.toggle-label');
+                    
+                    if (this.checked) {
+                        container.style.borderColor = '#10b981';
+                        container.style.backgroundColor = '#f0fdf4';
+                        label.textContent = 'Sinh viên đang hoạt động';
+                    } else {
+                        container.style.borderColor = '#e5e7eb';
+                        container.style.backgroundColor = 'white';
+                        label.textContent = 'Sinh viên không hoạt động';
+                    }
+                });
+                
+                // Initial state
+                const container = toggleSwitch.closest('.toggle-switch-container');
+                const label = container.querySelector('.toggle-label');
+                if (toggleSwitch.checked) {
+                    container.style.borderColor = '#10b981';
+                    container.style.backgroundColor = '#f0fdf4';
+                    label.textContent = 'Sinh viên đang hoạt động';
+                }
+            }
+
+            // Add section collapse/expand functionality
+            const sectionHeaders = document.querySelectorAll('.section-header');
+            sectionHeaders.forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    const section = this.closest('.form-section');
+                    const content = section.querySelector('.section-content');
+                    const isCollapsed = content.style.display === 'none';
+                    
+                    if (isCollapsed) {
+                        content.style.display = 'block';
+                        content.style.animation = 'slideDown 0.3s ease';
+                        this.classList.remove('collapsed');
+                    } else {
+                        content.style.animation = 'slideUp 0.3s ease';
+                        setTimeout(() => {
+                            content.style.display = 'none';
+                        }, 300);
+                        this.classList.add('collapsed');
+                    }
+                });
+            });
+
+            // Auto-save draft functionality (optional)
+            let autoSaveTimer;
+            const autoSaveInputs = document.querySelectorAll('.form-control-modern, .form-select-modern, .textarea-modern');
+            
+            autoSaveInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimer);
+                    autoSaveTimer = setTimeout(() => {
+                        saveDraft();
+                    }, 2000); // Save after 2 seconds of inactivity
+                });
+            });
+
+            function saveDraft() {
+                const formData = new FormData(form);
+                const draftData = {};
+                for (let [key, value] of formData.entries()) {
+                    draftData[key] = value;
+                }
+                localStorage.setItem('student_edit_draft_' + draftData.StudentId, JSON.stringify(draftData));
+                
+                // Show save indicator
+                showToast('Đã lưu bản nháp', 'info');
+            }
+
+            // Load draft on page load
+            const studentId = document.getElementById('StudentId')?.value;
+            if (studentId) {
+                const draftKey = 'student_edit_draft_' + studentId;
+                const savedDraft = localStorage.getItem(draftKey);
+                
+                if (savedDraft) {
+                    const draftData = JSON.parse(savedDraft);
+                    // Optionally restore draft data
+                    console.log('Draft available:', draftData);
+                }
+            }
+
+            // Email validation enhancement
+            const emailInput = document.getElementById('Email');
+            if (emailInput) {
+                emailInput.addEventListener('blur', function() {
+                    const email = this.value;
+                    const emailRegex = /^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$/;
+                    
+                    if (email && !emailRegex.test(email)) {
+                        this.style.borderColor = '#dc2626';
+                        showValidationMessage(this, 'Email không hợp lệ');
+                    } else {
+                        this.style.borderColor = '#e5e7eb';
+                        hideValidationMessage(this);
+                    }
+                });
+            }
+
+            function showValidationMessage(input, message) {
+                let validationMsg = input.parentElement.querySelector('.validation-message');
+                if (!validationMsg) {
+                    validationMsg = document.createElement('span');
+                    validationMsg.className = 'validation-message';
+                    input.parentElement.appendChild(validationMsg);
+                }
+                validationMsg.textContent = message;
+            }
+
+            function hideValidationMessage(input) {
+                const validationMsg = input.parentElement.querySelector('.validation-message');
+                if (validationMsg && !validationMsg.getAttribute('asp-validation-for')) {
+                    validationMsg.remove();
+                }
+            }
         });
 
-        // Auto-format student code
-        document.getElementById('StudentCode').addEventListener('input', function(e) {
-            let value = e.target.value.toUpperCase();
-            e.target.value = value;
-        });
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#dc2626' : '#3b82f6'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 9999;
+                animation: slideInRight 0.3s ease;
+                font-size: 0.875rem;
+                max-width: 300px;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS animations for toast
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @@keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            @@keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @@keyframes slideUp {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-10px); }
+            }
+            
+            .form-group-modern.focused .form-label-modern {
+                color: #3b82f6;
+            }
+            
+            .form-group-modern.has-value .form-label-modern {
+                color: #10b981;
+            }
+            
+            .section-header.collapsed::after {
+                content: ' (Thu gọn)';
+                font-size: 0.75rem;
+                opacity: 0.7;
+            }
+            
+            .toast-content {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 }
